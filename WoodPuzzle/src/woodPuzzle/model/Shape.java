@@ -9,9 +9,9 @@ public class Shape {
 	public final int height;
 	public final int length;
 	private final int total;
-	public int[] shape;
+	public final int[] shape;
 	
-	Shape(int width, int height, int length, List<Coordinate> shape) {
+	public Shape(int width, int height, int length, List<Coordinate> shape) {
 		this.width = width; 
 		this.height = height;
 		this.length = length;
@@ -26,7 +26,7 @@ public class Shape {
 			this.shape[i] = 0;
 		}
 		for (Coordinate c : shape) {
-			this.shape[c.hashCode()] = 1;
+			this.shape[this.hashCoordinate(c)] = 1;
 		}
 	}
 	

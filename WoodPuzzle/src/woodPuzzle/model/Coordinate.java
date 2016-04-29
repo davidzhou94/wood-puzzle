@@ -13,8 +13,8 @@ public class Coordinate {
 	
 	public static Coordinate buildCoordinate(String text) {
 		String[] result = text.split(",");
-		if (result.length < 3) 
+		if (result.length != 3) 
 			return null;
 		return new Coordinate(Integer.parseInt(result[0]), Integer.parseInt(result[1]), Integer.parseInt(result[2]));
-	}		
+	}
 }
