@@ -18,7 +18,7 @@ import woodPuzzle.model.Shape;
 public class XMLReader {
 	private XMLReader() { }
 	
-	private static Shape parseShape(int width, int height, int length, Node n) {
+	private static Shape parseShape(int sideLength, Node n) {
 		List<Coordinate> shapeCells = new ArrayList<Coordinate>();
 		NodeList nList = n.getChildNodes();
 		for (int i = 0; i < nList.getLength(); i++) {
@@ -31,12 +31,11 @@ public class XMLReader {
 			}
 		}
 		
-		return new Shape(width, height, length, shapeCells);
+		return new Shape(sideLength, shapeCells);
 	}
 
 	public static Puzzle buildPuzzle(String filePath) {
-		int pwidth = 0, pheight = 0, plength = 0, 
-				swidth = 0, sheight = 0, slength =0;
+		int width = 0, height = 0, length = 0, shapeSideLength = 0;
 		Puzzle puzzle = null;
 		try {
 			File fXmlFile = new File(filePath);
@@ -47,18 +46,16 @@ public class XMLReader {
 			Element rootElem = doc.getDocumentElement(); 
 			rootElem.normalize();
 			
-			pwidth = Integer.parseInt(rootElem.getAttribute("pwidth"));
-			pheight = Integer.parseInt(rootElem.getAttribute("pheight"));
-			plength = Integer.parseInt(rootElem.getAttribute("plength"));
+			width = Integer.parseInt(rootElem.getAttribute("width"));
+			height = Integer.parseInt(rootElem.getAttribute("height"));
+			length = Integer.parseInt(rootElem.getAttribute("length"));
 			
-			swidth = Integer.parseInt(rootElem.getAttribute("swidth"));
-			sheight = Integer.parseInt(rootElem.getAttribute("sheight"));
-			slength = Integer.parseInt(rootElem.getAttribute("slength"));
+			shapeSideLength = Integer.parseInt(rootElem.getAttribute("shapeSide"));
 				
-			puzzle = new Puzzle(pwidth, pheight, plength, swidth, sheight, slength);
+			puzzle = new Puzzle(width, height, length, shapeSideLength);
 			NodeList nList = doc.getElementsByTagName("Shape");
 			for (int i = 0; i < nList.getLength(); i++) {
-				puzzle.addShape(parseShape(swidth, sheight, slength, nList.item(i)));
+				puzzle.addShape(parseShape(shapeSideLength, nList.item(i)));
 			}
 				
 		} catch (Exception e) {

@@ -1,5 +1,5 @@
 <?xml version="1.0"?>
-<Puzzle pwidth="8" pheight="2" plength="5" smax="3">
+<Puzzle width="8" height="2" length="5" shapeSide="3">
 	<Shape>
 		<Coordinate>0,0,0</Coordinate>
 		<Coordinate>0,1,0</Coordinate>

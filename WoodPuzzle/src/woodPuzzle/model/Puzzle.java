@@ -28,6 +28,19 @@ public class Puzzle {
 		this.init();
 	}
 	
+	public Puzzle(Puzzle p) {
+		this.width = p.width;
+		this.height = p.height;
+		this.length = p.length;
+		this.totalCells = p.totalCells;
+		this.shapeSide = p.shapeSide;
+		this.allShapes = p.allShapes;
+		this.usedShapes = new HashSet<Shape>(p.usedShapes);
+		this.unusedShapes = new HashSet<Shape>(p.unusedShapes);
+		this.filledCells = new Shape[p.filledCells.length];
+		System.arraycopy(p.filledCells, 0, this.filledCells, 0, this.length);
+	}
+		
 	private void init() {
 		for (int i = 0; i < totalCells; i++) {
 			this.filledCells[i] = null;
