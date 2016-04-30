@@ -32,7 +32,8 @@ public class Engine {
 	
 	public static void main(String[] args) {
 		Engine e = Engine.getInstance();
-		e.setSolver(new BFSSolver());
+		//e.setSolver(new BFSSolver());
+		e.setSolver(new DFSSolver());
 		e.setupModel(args[0]);
 		e.solve();
 	}

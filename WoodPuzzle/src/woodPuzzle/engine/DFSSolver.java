@@ -9,30 +9,22 @@ import woodPuzzle.model.Coordinate;
 import woodPuzzle.model.Puzzle;
 import woodPuzzle.model.Shape;
 
-public class BFSSolver extends AbstractSolver {
+public class DFSSolver extends AbstractSolver {
 	
+	private static long count = 0;
+	private static int record = Integer.MAX_VALUE;
+	 
 	Node root;
 
-	public BFSSolver() {
-		root = new Node();
+	public DFSSolver() {
+		root = new Node(null);
 	}
 
 	@Override
 	public Puzzle findSolution(Puzzle p) {
-		//BigInteger count = BigInteger.ZERO;
-		long count = 0;
-		Queue<Node> order = new LinkedList<Node>();
 		root.config = p;
 		try {
-			order.add(root);
-			while (!order.isEmpty()) {
-				Node n = order.poll();
-				count++;
-				System.out.println("Config #" + count + " has " + n.config.getUnusedShapes().size() + " unused shapes");
-				this.descend(n);
-				System.out.println("Config #" + count + " has " + n.children.size() + " children");
-				order.addAll(n.children);
-			}
+			this.descend(root);
 		} catch (FoundException ex) {
 			return ex.config;
 		}
@@ -40,7 +32,12 @@ public class BFSSolver extends AbstractSolver {
 	}
 	
 	private void descend(Node n) throws FoundException {
+		count++;
 		Puzzle currentConfig = n.config;
+		if (currentConfig.getUnusedShapes().size() < record) record = currentConfig.getUnusedShapes().size();
+		if (count % 1000 == 0) {
+			System.out.print("\rConfig #" + count + " has " + currentConfig.getUnusedShapes().size() + " unused shapes, the current best record is " + record);
+		}
 		Puzzle newConfig = new Puzzle(currentConfig);
 		for (Shape s : currentConfig.getUnusedShapes()) {
 			int sideLength = s.getSideLength();
@@ -65,7 +62,7 @@ public class BFSSolver extends AbstractSolver {
 									if (newConfig.getUnusedShapes().isEmpty()) {
 										throw new FoundException(newConfig);
 									}
-									n.addChild(new Node(newConfig));
+									this.descend(new Node(newConfig, n));
 								} 
 								newConfig = new Puzzle(currentConfig);
 							}
@@ -161,19 +158,15 @@ public class BFSSolver extends AbstractSolver {
 	}
 
 	class Node {
-		public List<Node> children;
+		public Node parent;
 		public Puzzle config;
-		public Node() {
-			this.children = new ArrayList<Node>();
+		public Node(Node n) {
+			this.parent = n;
 		}
 		
-		public Node(Puzzle p) {
-			this.children = new ArrayList<Node>();
+		public Node(Puzzle p, Node n) {
+			this.parent = n;
 			this.config = p;
-		}
-		
-		public void addChild(Node n) {
-			this.children.add(n);
 		}
 	}
 	

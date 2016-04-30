@@ -20,7 +20,10 @@ public abstract class AbstractSolver {
 	public abstract Puzzle findSolution(Puzzle p);
 
 	public void printSolution(Puzzle p) {
-		if (p == null) System.out.println("No solution found");
+		if (p == null) {
+			System.out.println("No solution found");
+			return;
+		}
 		Shape[] cells = p.getFilledCells();
 		Map<Shape, Character> m = new HashMap<Shape, Character>();
 		m.put(null, '0');
