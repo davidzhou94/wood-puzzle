@@ -11,6 +11,10 @@ public class Coordinate {
 		this.z = z;
 	}
 	
+	public Coordinate vectorAdd(int x, int y, int z) {
+		return new Coordinate(this.x + x, this.y + y, this.z + z);
+	}
+	
 	public static Coordinate buildCoordinate(String text) {
 		String[] result = text.split(",");
 		if (result.length != 3) 

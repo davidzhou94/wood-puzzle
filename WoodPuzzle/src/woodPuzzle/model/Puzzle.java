@@ -15,6 +15,26 @@ public class Puzzle {
 	private Set<Shape> unusedShapes;
 	private Shape filledCells[];
 	
+	public int getWidth() {
+		return width;
+	}
+
+	public int getHeight() {
+		return height;
+	}
+
+	public int getLength() {
+		return length;
+	}
+	
+	public int getTotalCells() {
+		return totalCells;
+	}
+	
+	public Shape[] getFilledCells() {
+		return filledCells;
+	}
+
 	public Puzzle(int width, int height, int length, int shapeSide) {
 		this.width = width;
 		this.height = height;
@@ -24,7 +44,7 @@ public class Puzzle {
 		this.allShapes = new HashSet<Shape>();
 		this.usedShapes = new HashSet<Shape>();
 		this.unusedShapes = new HashSet<Shape>();
-		this.filledCells = new Shape[shapeSide * shapeSide * shapeSide];
+		this.filledCells = new Shape[totalCells];
 		this.init();
 	}
 	
@@ -75,6 +95,7 @@ public class Puzzle {
 		int lowx = Integer.MAX_VALUE, lowy = Integer.MAX_VALUE, lowz = Integer.MAX_VALUE;
 		for (Coordinate c : position) {
 			if (!isValidCoordinate(c)) return false;
+			if (filledCells[hashCoordinate(c)] != null) return false;
 			if (c.x < lowx) lowx = c.x;
 			if (c.y < lowy) lowy = c.y;
 			if (c.z < lowz) lowz = c.z;
@@ -86,14 +107,10 @@ public class Puzzle {
 			temp[pos] = 1;
 		}
 		
-		if (!isIdenticalPermutedShape(shape.shape, temp)) return false;
+		if (!isIdenticalPermutedShape(shape, temp)) return false;
 		
 		for (Coordinate c : position) {
-			if (filledCells[c.x + c.y * width + c.z * width * height] != null) return false;
-		}
-		
-		for (Coordinate c : position) {
-			filledCells[c.x + c.y * width + c.z * width * height] = shape;
+			filledCells[hashCoordinate(c)] = shape;
 		}
 		
 		unusedShapes.remove(shape);
@@ -102,136 +119,16 @@ public class Puzzle {
 		return true;
 	}
 	
-	private boolean isIdenticalPermutedShape(final int[] s1, int[] s2) {
-		if (isIdenticalShape(s1, s2)) return true;
+	private boolean isIdenticalPermutedShape(Shape s1, int[] s2) {
+		if (isIdenticalShape(s1.shape, s2)) return true;
 		for (int axis = 1; axis <= 2; axis++) {
 			for (int direction = 1; direction <= 3; direction++) {
-				rotateShape(s2, axis, direction);
-				if (isIdenticalShape(s1, s2)) return true;
+				s2 = s1.rotateShape(axis, direction);
+				if (isIdenticalShape(s1.shape, s2)) return true;
 			}
 		}
 		
 		return false;
-	}
-	
-	/**
-	 * Direction is the number of 90deg clockwise rotations (when  
-	 * facing the origin) along the axis
-	 * Axis is the axis of rotation, x = 0, y = 1, z = 2 
-	 * after rotating the shape, it will "pull" the shape into the origin
-	 * @param s
-	 * @param axis
-	 * @param direction
-	 */
-	private void rotateShape(int[] s, int axis, int direction) {
-		int copy[] = new int[s.length];
-		System.arraycopy(s, 0, copy, 0, s.length);
-		switch (axis) {
-		case 0:
-			// shouldn't need to rotate along x-axis
-		case 1:
-			switch (direction) {
-			case 0:
-				// do nothing
-				break;
-			case 1:
-				// 90 deg along y-axis
-				for (int x = 0; x < shapeSide; x++) {
-					for (int y = 0; y < shapeSide; y++) {
-						for (int z = 0; z < shapeSide; z++) {
-							int oldx = shapeSide - z - 1, oldy = y, oldz = x;
-							s[x + y * shapeSide + z * shapeSide * shapeSide] = copy[oldx + oldy * shapeSide + oldz * shapeSide * shapeSide];
-						}
-					}
-				}
-				break;
-			case 2:
-				// 180 deg along y-axis
-				for (int x = 0; x < shapeSide; x++) {
-					for (int y = 0; y < shapeSide; y++) {
-						for (int z = 0; z < shapeSide; z++) {
-							int oldx = shapeSide - x - 1, oldy = y, oldz = shapeSide - z - 1;
-							s[x + y * shapeSide + z * shapeSide * shapeSide] = copy[oldx + oldy * shapeSide + oldz * shapeSide * shapeSide];
-						}
-					}
-				}
-				break;
-			case 3:
-				// 270 deg along y-axis
-				for (int x = 0; x < shapeSide; x++) {
-					for (int y = 0; y < shapeSide; y++) {
-						for (int z = 0; z < shapeSide; z++) {
-							int oldx = z, oldy = y, oldz = shapeSide - x - 1;
-							s[x + y * shapeSide + z * shapeSide * shapeSide] = copy[oldx + oldy * shapeSide + oldz * shapeSide * shapeSide];
-						}
-					}
-				}
-				break;
-			}
-			break;
-		case 2:
-			switch (direction) {
-			case 0:
-				// do nothing
-				break;
-			case 1:
-				// 90 deg along z-axis
-				for (int x = 0; x < shapeSide; x++) {
-					for (int y = 0; y < shapeSide; y++) {
-						for (int z = 0; z < shapeSide; z++) {
-							int oldx = y, oldy = shapeSide - x - 1, oldz = z;
-							s[x + y * shapeSide + z * shapeSide * shapeSide] = copy[oldx + oldy * shapeSide + oldz * shapeSide * shapeSide];
-						}
-					}
-				}
-				break;
-			case 2:
-				// 180 deg along z-axis
-				for (int x = 0; x < shapeSide; x++) {
-					for (int y = 0; y < shapeSide; y++) {
-						for (int z = 0; z < shapeSide; z++) {
-							int oldx = shapeSide - x - 1, oldy = shapeSide - y - 1, oldz = z;
-							s[x + y * shapeSide + z * shapeSide * shapeSide] = copy[oldx + oldy * shapeSide + oldz * shapeSide * shapeSide];
-						}
-					}
-				}
-				break;
-			case 3:
-				// 270 deg along z-axis
-				for (int x = 0; x < shapeSide; x++) {
-					for (int y = 0; y < shapeSide; y++) {
-						for (int z = 0; z < shapeSide; z++) {
-							int oldx = shapeSide - y - 1, oldy = x, oldz = z;
-							s[x + y * shapeSide + z * shapeSide * shapeSide] = copy[oldx + oldy * shapeSide + oldz * shapeSide * shapeSide];
-						}
-					}
-				}
-				break;
-			}
-			break;
-		default:
-			
-		}
-		int lowx = Integer.MAX_VALUE, lowy = Integer.MAX_VALUE, lowz = Integer.MAX_VALUE;
-		for (int x = 0; x < shapeSide; x++) {
-			for (int y = 0; y < shapeSide; y++) {
-				for (int z = 0; z < shapeSide; z++) {
-					if (s[x + y * shapeSide + z * shapeSide * shapeSide] == 1) {
-						if (x < lowx) lowx = x;
-						if (y < lowy) lowy = y;
-						if (z < lowz) lowz = z;
-					}
-				}
-			}
-		}
-		for (int x = 0; x < shapeSide; x++) {
-			for (int y = 0; y < shapeSide; y++) {
-				for (int z = 0; z < shapeSide; z++) {
-					s[x + y * shapeSide + z * shapeSide * shapeSide] 
-							= s[(x+lowx) + (y+lowy) * shapeSide + (z+lowz) * shapeSide * shapeSide];
-				}
-			}
-		}
 	}
 	
 	/**
@@ -245,5 +142,13 @@ public class Puzzle {
 			if (s1[i] != s2[i]) return false;			
 		}
 		return true;
+	}
+	
+	public int hashCoordinate(Coordinate c) {
+		return hashCoordinate(c.x, c.y, c.z); 
+	}
+	
+	public int hashCoordinate(int x, int y, int z) {
+		return x + (width * y) + (z * (width * height) ); 
 	}
 }
