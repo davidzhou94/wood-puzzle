@@ -20,19 +20,19 @@ public class BFSSolver extends AbstractSolver {
 
 	@Override
 	public Puzzle findSolution(Puzzle p) {
-		//BigInteger count = BigInteger.ZERO;
-		long count = 0;
+		BigInteger count = BigInteger.ZERO;
+		//long count = 0;
 		Queue<Node> order = new LinkedList<Node>();
 		root.config = p;
 		try {
 			order.add(root);
 			while (!order.isEmpty()) {
-				//count.add(BigInteger.ONE);
-				/*if (count.mod(BigInteger.valueOf(1000)).compareTo(BigInteger.ZERO) == 0) {
+				count.add(BigInteger.ONE);
+				if (count.mod(BigInteger.valueOf(1000)).compareTo(BigInteger.ZERO) == 0) {
 					System.out.println("\rChecked " + count.toString() + " cominations");
-				}*/
-				count++;
-				System.out.println("Checked " + count + " cominations");
+				}
+				//count++;
+				//System.out.println("Checked " + count + " cominations");
 				Node n = order.poll();
 				this.descend(n);
 				order.addAll(n.children);
@@ -52,24 +52,11 @@ public class BFSSolver extends AbstractSolver {
 			for(int x = 0; x < currentConfig.getWidth() - 2; x++) {
 				for(int z = 0; z < currentConfig.getLength() - 2; z++) {
 					//System.out.println("Current position (x, z) = (" + x + ", " + z + ")");
-					List<Coordinate> placement = new ArrayList<Coordinate>();
-					for (Coordinate c : s.getCoordinates()) {
-						placement.add(c.vectorAdd(x, 0, z));
-					}
-					if (newConfig.placeShape(s, placement)) {
-						if (!hasIsolatedCells(newConfig, 5)) {
-							if (newConfig.getUnusedShapes().isEmpty()) {
-								throw new FoundException(newConfig);
-							}
-							n.addChild(new Node(newConfig));
-						} else {
-							newConfig = new Puzzle(currentConfig);
-						}
-					}
-					for (int axis = 1; axis <= 2; axis++) {
-						for (int direction = 1; direction <= 3; direction++) {
+					List<Coordinate> placement;
+					for (int yaxis = 0; yaxis <= 3; yaxis++) {
+						for (int zaxis = 0; zaxis <= 3; zaxis++) {
 							//System.out.println("Rotating current shape at current position");
-							int[] rotatedShape = s.rotateShape(axis, direction);
+							int[] rotatedShape = s.rotateShape(yaxis, zaxis);
 							placement = new ArrayList<Coordinate>();
 							for (int i = 0; i < sideLength; i++) {
 								for (int j = 0; j < sideLength; j++) {

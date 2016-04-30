@@ -58,7 +58,7 @@ public class Puzzle {
 		this.usedShapes = new HashSet<Shape>(p.usedShapes);
 		this.unusedShapes = new HashSet<Shape>(p.unusedShapes);
 		this.filledCells = new Shape[p.filledCells.length];
-		System.arraycopy(p.filledCells, 0, this.filledCells, 0, this.length);
+		System.arraycopy(p.filledCells, 0, this.filledCells, 0, this.filledCells.length);
 	}
 		
 	private void init() {
@@ -120,11 +120,11 @@ public class Puzzle {
 	}
 	
 	private boolean isIdenticalPermutedShape(Shape s1, int[] s2) {
-		if (isIdenticalShape(s1.shape, s2)) return true;
-		for (int axis = 1; axis <= 2; axis++) {
-			for (int direction = 1; direction <= 3; direction++) {
-				s2 = s1.rotateShape(axis, direction);
-				if (isIdenticalShape(s1.shape, s2)) return true;
+		for (int yaxis = 0; yaxis <= 3; yaxis++) {
+			for (int zaxis = 0; zaxis <= 3; zaxis++) {
+				int[] temp;
+				temp = s1.rotateShape(yaxis, zaxis);
+				if (isIdenticalShape(temp, s2)) return true;
 			}
 		}
 		
