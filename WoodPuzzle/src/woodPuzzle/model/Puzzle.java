@@ -103,8 +103,8 @@ public class Puzzle {
 		int temp[] = new int[shapeSide * shapeSide * shapeSide];
 		for (int i = 0; i < shapeSide * shapeSide * shapeSide; i++) temp[i] = 0;
 		for (Coordinate c : position) {
-			int pos = (c.x - lowx) + (c.y - lowy) * shapeSide + (c.z - lowz) * shapeSide * shapeSide;
-			temp[pos] = 1;
+			//int pos = (c.x - lowx) + (c.y - lowy) * shapeSide + (c.z - lowz) * shapeSide * shapeSide;
+			temp[shape.hashCoordinate(c.vectorAdd(-lowx, -lowy, -lowz))] = 1;
 		}
 		
 		if (!isIdenticalPermutedShape(shape, temp)) return false;

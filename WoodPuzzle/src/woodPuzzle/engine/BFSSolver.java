@@ -47,9 +47,11 @@ public class BFSSolver extends AbstractSolver {
 		Puzzle currentConfig = n.config;
 		Puzzle newConfig = new Puzzle(currentConfig);
 		for (Shape s : currentConfig.getUnusedShapes()) {
+			System.out.println("Checking a new shape");
 			int sideLength = s.getSideLength();
 			for(int x = 0; x < currentConfig.getWidth() - 2; x++) {
-				for(int z = 0; z < currentConfig.getLength() - 2; x++) {
+				for(int z = 0; z < currentConfig.getLength() - 2; z++) {
+					//System.out.println("Current position (x, z) = (" + x + ", " + z + ")");
 					List<Coordinate> placement = new ArrayList<Coordinate>();
 					for (Coordinate c : s.getCoordinates()) {
 						placement.add(c.vectorAdd(x, 0, z));
@@ -66,12 +68,13 @@ public class BFSSolver extends AbstractSolver {
 					}
 					for (int axis = 1; axis <= 2; axis++) {
 						for (int direction = 1; direction <= 3; direction++) {
+							//System.out.println("Rotating current shape at current position");
 							int[] rotatedShape = s.rotateShape(axis, direction);
 							placement = new ArrayList<Coordinate>();
 							for (int i = 0; i < sideLength; i++) {
 								for (int j = 0; j < sideLength; j++) {
 									for (int k = 0; k < sideLength; k++) {
-										if (rotatedShape[i + j * sideLength + k * sideLength *sideLength] == 1) {
+										if (rotatedShape[s.hashCoordinate(i, j, k)] == 1) {
 											placement.add(new Coordinate(i + x, j, k + z));
 										}
 									}
@@ -186,6 +189,7 @@ public class BFSSolver extends AbstractSolver {
 		}
 		
 		public Node(Puzzle p) {
+			this.children = new ArrayList<Node>();
 			this.config = p;
 		}
 		

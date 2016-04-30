@@ -23,6 +23,7 @@ public abstract class AbstractSolver {
 		if (p == null) System.out.println("No solution found");
 		Shape[] cells = p.getFilledCells();
 		Map<Shape, Character> m = new HashMap<Shape, Character>();
+		m.put(null, '0');
 		char cur = 'A';
 		for (int y = 0; y < p.getHeight(); y++) {
 			for (int x = 0; x < p.getWidth(); x++) {
