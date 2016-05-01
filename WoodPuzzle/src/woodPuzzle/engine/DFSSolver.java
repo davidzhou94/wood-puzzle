@@ -10,12 +10,12 @@ import woodPuzzle.model.Puzzle;
 import woodPuzzle.model.Shape;
 
 public class DFSSolver extends AbstractSolver {
-	
+
 	private static long count = 0;
 	private static long rejects = 0;
 	private static int record = Integer.MAX_VALUE;
 	private static final int SMALLEST_SHAPE_CELL_COUNT = 5;
-	 
+
 	Node root;
 
 	public DFSSolver() {
@@ -32,7 +32,7 @@ public class DFSSolver extends AbstractSolver {
 		}
 		return null;
 	}
-	
+
 	private void descend(Node n) throws FoundException {
 		count++;
 		Puzzle currentConfig = n.config;
@@ -41,46 +41,48 @@ public class DFSSolver extends AbstractSolver {
 			System.out.print("\rConfig #" + count + " has " + currentConfig.getUnusedShapes().size() + " unused shapes, after " + rejects + " dead ends, the current best record is " + record);
 		}
 		Puzzle newConfig = new Puzzle(currentConfig);
-		for (Shape s : currentConfig.getUnusedShapes()) {
-			if (n.parent == null) System.out.println("\nAdvanced 1 shape on root");
-			int sideLength = s.getSideLength();
-			for(int x = 0; x < currentConfig.getWidth() - 1; x++) {
-				for(int z = 0; z < currentConfig.getLength() - 1; z++) {
-					List<Coordinate> placement;
-					if (n.parent == null) System.out.println("\nAdvanced 1 position on root");
-					for (int yaxis = 0; yaxis <= 3; yaxis++) {
-						for (int zaxis = 0; zaxis <= 3; zaxis++) {
-							int[] rotatedShape = s.rotateShape(yaxis, zaxis);
-							placement = new ArrayList<Coordinate>();
-							for (int i = 0; i < sideLength; i++) {
-								for (int j = 0; j < sideLength; j++) {
-									for (int k = 0; k < sideLength; k++) {
-										if (rotatedShape[s.hashCoordinate(i, j, k)] == 1) {
-											placement.add(new Coordinate(i + x, j, k + z));
-										}
+		// you don't actually need to iterate through the shapes, in theory every shape has at 
+		// least one valid placement so it suffices to pick any shape and try each of the possible positions 
+		// for that shape in the current configuration.
+		Shape s = currentConfig.getUnusedShapes().iterator().next();
+
+		int sideLength = s.getSideLength();
+		for(int x = 0; x < currentConfig.getWidth() - 1; x++) {
+			for(int z = 0; z < currentConfig.getLength() - 1; z++) {
+				List<Coordinate> placement;
+				if (n.parent == null) System.out.println("\nAdvanced 1 position on root");
+				for (int yaxis = 0; yaxis <= 3; yaxis++) {
+					for (int zaxis = 0; zaxis <= 3; zaxis++) {
+						int[] rotatedShape = s.rotateShape(yaxis, zaxis);
+						placement = new ArrayList<Coordinate>();
+						for (int i = 0; i < sideLength; i++) {
+							for (int j = 0; j < sideLength; j++) {
+								for (int k = 0; k < sideLength; k++) {
+									if (rotatedShape[s.hashCoordinate(i, j, k)] == 1) {
+										placement.add(new Coordinate(i + x, j, k + z));
 									}
 								}
 							}
-							if (newConfig.placeShape(s, placement)) {
-								if (!hasIsolatedCells(newConfig, SMALLEST_SHAPE_CELL_COUNT)) {
-									if (newConfig.getUnusedShapes().isEmpty()) {
-										throw new FoundException(newConfig);
-									}
-									this.descend(new Node(newConfig, n));
-								}  else {
-									rejects++;
+						}
+						if (newConfig.placeShape(s, placement)) {
+							if (!hasIsolatedCells(newConfig, SMALLEST_SHAPE_CELL_COUNT)) {
+								if (newConfig.getUnusedShapes().isEmpty()) {
+									throw new FoundException(newConfig);
 								}
-								newConfig = new Puzzle(currentConfig);
-							} else {
+								this.descend(new Node(newConfig, n));
+							}  else {
 								rejects++;
 							}
+							newConfig = new Puzzle(currentConfig);
+						} else {
+							rejects++;
 						}
 					}
 				}
 			}
 		}
 	}
-	
+
 	public boolean hasIsolatedCells(Puzzle p, int validGroupSize) {
 		boolean visited[] = new boolean[p.getTotalCells()];
 		Shape cells[] = p.getFilledCells();
@@ -171,13 +173,13 @@ public class DFSSolver extends AbstractSolver {
 		public Node(Node n) {
 			this.parent = n;
 		}
-		
+
 		public Node(Puzzle p, Node n) {
 			this.parent = n;
 			this.config = p;
 		}
 	}
-	
+
 	class FoundException extends Exception {
 
 		/**
