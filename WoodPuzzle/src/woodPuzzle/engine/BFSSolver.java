@@ -14,29 +14,59 @@ public class BFSSolver extends AbstractSolver {
 	Node root;
 
 	public BFSSolver() {
-		root = new Node();
+		root = new Node(null);
 	}
 
 	@Override
 	public Puzzle findSolution(Puzzle p) {
-		//BigInteger count = BigInteger.ZERO;
-		long count = 0;
-		Queue<Node> order = new LinkedList<Node>();
 		root.config = p;
 		try {
-			order.add(root);
-			while (!order.isEmpty()) {
-				Node n = order.poll();
-				count++;
-				System.out.println("Config #" + count + " has " + n.config.getUnusedShapes().size() + " unused shapes");
-				this.descend(n);
-				System.out.println("Config #" + count + " has " + n.children.size() + " children");
-				order.addAll(n.children);
+			Node n = root;
+			this.descend(n);
+			while (true) {
+				List<Node> prune = new ArrayList<Node>();
+				for (Node c : n.children) {
+					if (c.children.isEmpty()) {
+						this.descend(c);
+						if (c.children.isEmpty()) {
+							prune.add(c);
+						}
+					}
+					n.invalid += c.invalid;
+					n.valid += c.valid;
+				}
+				n.invalid += prune.size();
+				n.valid -= prune.size();
+				for (Node c : prune) {
+					n.children.remove(c);
+				}
+				if (n.children.isEmpty()) {
+					Node c = n;
+					n = c.parent;
+					n.invalid += c.invalid + 1;
+					n.valid--;
+					n.children.remove(c);
+					System.out.println("I have reached a dead end");
+					continue;
+				}
+				Node bestConfig = n.children.get(0);
+				double bestScore = (double)(bestConfig.valid) / (double)(bestConfig.invalid + bestConfig.valid);
+				double worstScore = bestScore;
+				for (Node c : n.children) {
+					double score = (double)(c.valid) / (double)(c.invalid + c.valid);
+					if (score > bestScore) {
+						bestConfig = c;
+						bestScore = score;
+					}
+					if (score < worstScore) worstScore = score;
+				}
+				n = bestConfig;
+				System.out.println("I chose a node with score " + bestScore + " the worst score was " + worstScore);
 			}
 		} catch (FoundException ex) {
 			return ex.config;
 		}
-		return null;
+		//return null;
 	}
 	
 	private void descend(Node n) throws FoundException {
@@ -61,13 +91,16 @@ public class BFSSolver extends AbstractSolver {
 								}
 							}
 							if (newConfig.placeShape(s, placement)) {
+								n.valid++;
 								if (!hasIsolatedCells(newConfig, 5)) {
 									if (newConfig.getUnusedShapes().isEmpty()) {
 										throw new FoundException(newConfig);
 									}
-									n.addChild(new Node(newConfig));
+									n.addChild(new Node(newConfig, n));
 								} 
 								newConfig = new Puzzle(currentConfig);
+							} else {
+								n.invalid++;
 							}
 						}
 					}
@@ -153,7 +186,7 @@ public class BFSSolver extends AbstractSolver {
 							}
 						}
 					}
-					if (emptyCount < validGroupSize) return true;
+					if (emptyCount % validGroupSize != 0) return true;
 				}
 			}
 		}
@@ -161,15 +194,23 @@ public class BFSSolver extends AbstractSolver {
 	}
 
 	class Node {
+		public long valid, invalid;
 		public List<Node> children;
 		public Puzzle config;
-		public Node() {
+		public Node parent;
+		public Node(Node parent) {
+			valid = 0;
+			invalid = 0;
 			this.children = new ArrayList<Node>();
+			this.parent = parent;
 		}
 		
-		public Node(Puzzle p) {
+		public Node(Puzzle p, Node parent) {
+			valid = 0;
+			invalid = 0;
 			this.children = new ArrayList<Node>();
 			this.config = p;
+			this.parent = parent;
 		}
 		
 		public void addChild(Node n) {

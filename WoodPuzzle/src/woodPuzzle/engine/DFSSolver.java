@@ -150,7 +150,7 @@ public class DFSSolver extends AbstractSolver {
 							}
 						}
 					}
-					if (emptyCount < validGroupSize) return true;
+					if (emptyCount % validGroupSize != 0) return true;
 				}
 			}
 		}
