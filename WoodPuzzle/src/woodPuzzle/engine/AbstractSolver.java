@@ -21,9 +21,10 @@ public abstract class AbstractSolver {
 
 	public void printSolution(Puzzle p) {
 		if (p == null) {
-			System.out.println("No solution found");
+			System.out.println("\nNo solution found");
 			return;
 		}
+		System.out.println("\nSolution found:\n");
 		Shape[] cells = p.getFilledCells();
 		Map<Shape, Character> m = new HashMap<Shape, Character>();
 		m.put(null, '0');

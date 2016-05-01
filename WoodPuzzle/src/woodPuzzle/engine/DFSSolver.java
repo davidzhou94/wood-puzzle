@@ -12,7 +12,9 @@ import woodPuzzle.model.Shape;
 public class DFSSolver extends AbstractSolver {
 	
 	private static long count = 0;
+	private static long rejects = 0;
 	private static int record = Integer.MAX_VALUE;
+	private static final int SMALLEST_SHAPE_CELL_COUNT = 5;
 	 
 	Node root;
 
@@ -36,14 +38,16 @@ public class DFSSolver extends AbstractSolver {
 		Puzzle currentConfig = n.config;
 		if (currentConfig.getUnusedShapes().size() < record) record = currentConfig.getUnusedShapes().size();
 		if (count % 1000 == 0) {
-			System.out.print("\rConfig #" + count + " has " + currentConfig.getUnusedShapes().size() + " unused shapes, the current best record is " + record);
+			System.out.print("\rConfig #" + count + " has " + currentConfig.getUnusedShapes().size() + " unused shapes, after " + rejects + " dead ends, the current best record is " + record);
 		}
 		Puzzle newConfig = new Puzzle(currentConfig);
 		for (Shape s : currentConfig.getUnusedShapes()) {
+			if (n.parent == null) System.out.println("\nAdvanced 1 shape on root");
 			int sideLength = s.getSideLength();
-			for(int x = 0; x < currentConfig.getWidth() - 2; x++) {
-				for(int z = 0; z < currentConfig.getLength() - 2; z++) {
+			for(int x = 0; x < currentConfig.getWidth() - 1; x++) {
+				for(int z = 0; z < currentConfig.getLength() - 1; z++) {
 					List<Coordinate> placement;
+					if (n.parent == null) System.out.println("\nAdvanced 1 position on root");
 					for (int yaxis = 0; yaxis <= 3; yaxis++) {
 						for (int zaxis = 0; zaxis <= 3; zaxis++) {
 							int[] rotatedShape = s.rotateShape(yaxis, zaxis);
@@ -58,13 +62,17 @@ public class DFSSolver extends AbstractSolver {
 								}
 							}
 							if (newConfig.placeShape(s, placement)) {
-								if (!hasIsolatedCells(newConfig, 5)) {
+								if (!hasIsolatedCells(newConfig, SMALLEST_SHAPE_CELL_COUNT)) {
 									if (newConfig.getUnusedShapes().isEmpty()) {
 										throw new FoundException(newConfig);
 									}
 									this.descend(new Node(newConfig, n));
-								} 
+								}  else {
+									rejects++;
+								}
 								newConfig = new Puzzle(currentConfig);
+							} else {
+								rejects++;
 							}
 						}
 					}

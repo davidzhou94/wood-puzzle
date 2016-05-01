@@ -74,8 +74,8 @@ public class BFSSolver extends AbstractSolver {
 		Puzzle newConfig = new Puzzle(currentConfig);
 		for (Shape s : currentConfig.getUnusedShapes()) {
 			int sideLength = s.getSideLength();
-			for(int x = 0; x < currentConfig.getWidth() - 2; x++) {
-				for(int z = 0; z < currentConfig.getLength() - 2; z++) {
+			for(int x = 0; x < currentConfig.getWidth() - 1; x++) {
+				for(int z = 0; z < currentConfig.getLength() - 1; z++) {
 					List<Coordinate> placement;
 					for (int yaxis = 0; yaxis <= 3; yaxis++) {
 						for (int zaxis = 0; zaxis <= 3; zaxis++) {
