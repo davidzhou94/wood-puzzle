@@ -13,7 +13,7 @@ import woodPuzzle.model.Coordinate;
 import woodPuzzle.model.Puzzle;
 import woodPuzzle.model.Shape;
 
-public class PuzzleTest {
+public class ConfigurationTest {
 	Puzzle p;
 	Shape s1, s2, s3;
 	static final int SHAPE_SIDE = 3;
