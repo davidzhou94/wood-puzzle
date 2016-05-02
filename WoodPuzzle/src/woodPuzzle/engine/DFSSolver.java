@@ -1,10 +1,8 @@
 package woodPuzzle.engine;
 
 import java.util.ArrayList;
-import java.util.LinkedList;
 import java.util.List;
-import java.util.Queue;
-
+import woodPuzzle.model.Configuration;
 import woodPuzzle.model.Coordinate;
 import woodPuzzle.model.Puzzle;
 import woodPuzzle.model.Shape;
@@ -16,15 +14,16 @@ public class DFSSolver extends AbstractSolver {
 	private static int record = Integer.MAX_VALUE;
 	private static final int SMALLEST_SHAPE_CELL_COUNT = 5;
 
-	Node root;
+	private Node root;
 
-	public DFSSolver() {
+	public DFSSolver(Puzzle p) {
+		super(p);
 		root = new Node(null);
 	}
 
 	@Override
-	public Puzzle findSolution(Puzzle p) {
-		root.config = p;
+	public Configuration findSolution() {
+		this.root.config = new Configuration(this.puzzle);
 		try {
 			this.descend(root);
 		} catch (FoundException ex) {
@@ -35,20 +34,20 @@ public class DFSSolver extends AbstractSolver {
 
 	private void descend(Node n) throws FoundException {
 		count++;
-		Puzzle currentConfig = n.config;
+		Configuration currentConfig = n.config;
 		if (currentConfig.getUnusedShapes().size() < record) record = currentConfig.getUnusedShapes().size();
 		if (count % 1000 == 0) {
 			System.out.print("\rConfig #" + count + " has " + currentConfig.getUnusedShapes().size() + " unused shapes, after " + rejects + " dead ends, the current best record is " + record);
 		}
-		Puzzle newConfig = new Puzzle(currentConfig);
+		Configuration newConfig = new Configuration(currentConfig);
 		// you don't actually need to iterate through the shapes, in theory every shape has at 
 		// least one valid placement so it suffices to pick any shape and try each of the possible positions 
 		// for that shape in the current configuration.
 		Shape s = currentConfig.getUnusedShapes().iterator().next();
 
 		int sideLength = s.getSideLength();
-		for(int x = 0; x < currentConfig.getWidth() - 1; x++) {
-			for(int z = 0; z < currentConfig.getLength() - 1; z++) {
+		for(int x = 0; x < this.puzzle.getWidth() - 1; x++) {
+			for(int z = 0; z < this.puzzle.getLength() - 1; z++) {
 				List<Coordinate> placement;
 				if (n.parent == null) System.out.println("\nAdvanced 1 position on root");
 				for (int yaxis = 0; yaxis <= 3; yaxis++) {
@@ -73,7 +72,7 @@ public class DFSSolver extends AbstractSolver {
 							}  else {
 								rejects++;
 							}
-							newConfig = new Puzzle(currentConfig);
+							newConfig = new Configuration(currentConfig);
 						} else {
 							rejects++;
 						}
@@ -83,100 +82,16 @@ public class DFSSolver extends AbstractSolver {
 		}
 	}
 
-	public boolean hasIsolatedCells(Puzzle p, int validGroupSize) {
-		boolean visited[] = new boolean[p.getTotalCells()];
-		Shape cells[] = p.getFilledCells();
-		for (int i = 0; i < p.getTotalCells(); i++) visited[i] = false;
-		for (int x = 0; x < p.getWidth(); x++) {
-			for (int y = 0; y < p.getHeight(); y++) {
-				for (int z = 0; z < p.getLength(); z++) {
-					int pos = p.hashCoordinate(x, y, z);
-					if (visited[pos]) continue;
-					visited[pos] = true;
-					if (cells[pos] != null) continue;
-					int emptyCount = 1;
-					Queue<Coordinate> checkNeighbours = new LinkedList<Coordinate>();
-					checkNeighbours.add(new Coordinate(x, y, z));
-					while (!checkNeighbours.isEmpty()) {
-						Coordinate c = checkNeighbours.poll();
-						if (p.isValidCoordinate(c.x + 1, c.y, c.z)) {
-							int adj = p.hashCoordinate(c.x+1, c.y, c.z);
-							if (visited[adj] == false) {
-								if (cells[adj] == null) {
-									emptyCount++;
-									checkNeighbours.add(c.vectorAdd(1, 0, 0));
-								}
-								visited[adj] = true;
-							}
-						}
-						if (p.isValidCoordinate(c.x - 1, c.y, c.z)) {
-							int adj = p.hashCoordinate(c.x-1, c.y, c.z);
-							if (visited[adj] == false) {
-								if (cells[adj] == null) {
-									emptyCount++;
-									checkNeighbours.add(c.vectorAdd(-1, 0, 0));
-								}
-								visited[adj] = true;
-							}
-						}
-						if (p.isValidCoordinate(c.x, c.y+1, c.z)) {
-							int adj = p.hashCoordinate(c.x, c.y+1, c.z);
-							if (visited[adj] == false) {
-								if (cells[adj] == null) {
-									emptyCount++;
-									checkNeighbours.add(c.vectorAdd(0, 1, 0));
-								}
-								visited[adj] = true;
-							}
-						}
-						if (p.isValidCoordinate(c.x, c.y-1, c.z)) {
-							int adj = p.hashCoordinate(c.x+1, c.y-1, c.z);
-							if (visited[adj] == false) {
-								if (cells[adj] == null) {
-									emptyCount++;
-									checkNeighbours.add(c.vectorAdd(0, -1, 0));
-								}
-								visited[adj] = true;
-							}
-						}
-						if (p.isValidCoordinate(c.x, c.y, c.z+1)) {
-							int adj = p.hashCoordinate(c.x, c.y, c.z+1);
-							if (visited[adj] == false) {
-								if (cells[adj] == null) {
-									emptyCount++;
-									checkNeighbours.add(c.vectorAdd(0, 0, 1));
-								}
-								visited[adj] = true;
-							}
-						}
-						if (p.isValidCoordinate(c.x, c.y, c.z-1)) {
-							int adj = p.hashCoordinate(c.x, c.y, c.z-1);
-							if (visited[adj] == false) {
-								if (cells[adj] == null) {
-									emptyCount++;
-									checkNeighbours.add(c.vectorAdd(0, 0, -1));
-								}
-								visited[adj] = true;
-							}
-						}
-					}
-					if (emptyCount % validGroupSize != 0) return true;
-				}
-			}
-		}
-		return false;
-	}
-
 	class Node {
 		public Node parent;
-		public Puzzle config;
+		public Configuration config;
 		public Node(Node n) {
 			this.parent = n;
 		}
 
-		public Node(Puzzle p, Node n) {
+		public Node(Configuration c, Node n) {
 			this.parent = n;
-			this.config = p;
+			this.config = c;
 		}
 	}
 
@@ -186,8 +101,8 @@ public class DFSSolver extends AbstractSolver {
 		 * 
 		 */
 		private static final long serialVersionUID = 5453975780718671130L;
-		public Puzzle config;
-		public FoundException(Puzzle config) {
+		public Configuration config;
+		public FoundException(Configuration config) {
 			this.config = config;
 		}
 	}

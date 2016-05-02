@@ -32,9 +32,9 @@ public class Engine {
 	
 	public static void main(String[] args) {
 		Engine e = Engine.getInstance();
-		//e.setSolver(new BFSSolver());
-		e.setSolver(new DFSSolver());
 		e.setupModel(args[0]);
+		e.setSolver(new BFSSolver(e.puzzle));
+		//e.setSolver(new DFSSolver(e.puzzle));
 		e.solve();
 	}
 }

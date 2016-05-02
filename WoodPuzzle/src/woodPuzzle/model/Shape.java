@@ -5,10 +5,10 @@ import java.util.List;
 import woodPuzzle.model.Coordinate;
 
 public class Shape {
-	public final int sideLength;
-	private final int total;
-	private final int[] shape;
-	private final List<Coordinate> coordinates;
+	protected final int sideLength;
+	protected final int total;
+	protected final int[] shape;
+	protected final List<Coordinate> coordinates;
 	
 	public int[] getCells() {
 		return shape;
