@@ -57,10 +57,10 @@ public class ThreadedDFSSolver extends AbstractSolver {
 		for(int x = 0; x < this.puzzle.getWidth() - 1; x++) {
 			for(int z = 0; z < this.puzzle.getLength() - 1; z++) {
 				List<Coordinate> placement;
-				if (n.parent == null) System.out.println("\nRoot coordinate (x,z) = (" + x + ", " + z + ")");
+				if (n.parent == null) System.out.println("Root coordinate (x,z) = (" + x + ", " + z + ")");
 				for (int yaxis = 0; yaxis <= 3; yaxis++) {
 					for (int zaxis = 0; zaxis <= 3; zaxis++) {
-						if (n.parent == null) System.out.println("\n  Root rotation (y,z) axis = (" + yaxis + ", " + zaxis + ")");
+						if (n.parent == null) System.out.println("  Root rotation (y,z) axis = (" + yaxis + ", " + zaxis + ")");
 						Configuration newConfig = new Configuration(currentConfig);
 						int[] rotatedShape = s.rotateShape(yaxis, zaxis);
 						placement = new ArrayList<Coordinate>();
@@ -77,21 +77,24 @@ public class ThreadedDFSSolver extends AbstractSolver {
 						if (newConfig.getUnusedShapes().isEmpty()) throw new FoundException(newConfig);
 						if (hasIsolatedCells(newConfig, SMALLEST_SHAPE_CELL_COUNT)) continue;
 						
-						DescendThread dt = new DescendThread(n, puzzle);
+						Node child = new Node(n, newConfig);
+						DescendThread dt = new DescendThread(child, puzzle);
 						Thread t = new Thread(dt);
 						t.start();
 						try {
+							// doing one thread at a time but this could be more.
 							t.join();
 						} catch (InterruptedException e) {
 							e.printStackTrace();
 						}
-						if (dt.recordLevel < Integer.MAX_VALUE) {
-							Node child = dt.root;
+						if (dt.solution == null) {
 							child.recordLevel = dt.recordLevel;
 							child.recordLevelCount = dt.recordLevelCount;
 							child.rejectCount = dt.rejectCount;
 							children.add(child);
-							if (n.parent == null) System.out.println("\n    Added child with record level " + dt.recordLevel + " with " + dt.recordLevelCount + " at record level, rejected " + dt.rejectCount);
+							if (n.parent == null) System.out.println("    Added child with record level " + dt.recordLevel + " with " + dt.recordLevelCount + " at record level, rejected " + dt.rejectCount);
+						} else {
+							throw new FoundException(dt.solution);
 						}
 					}
 				}
@@ -157,7 +160,7 @@ public class ThreadedDFSSolver extends AbstractSolver {
 									if (newConfig.getUnusedShapes().isEmpty()) {
 										throw new FoundException(newConfig);
 									}
-									this.descend(new Node(newConfig, n));
+									this.descend(new Node(n, newConfig));
 								}  else {
 									rejectCount++;
 								}
@@ -195,7 +198,7 @@ public class ThreadedDFSSolver extends AbstractSolver {
 			this.parent = n;
 		}
 
-		Node(Configuration c, Node n) {
+		Node(Node n, Configuration c) {
 			this.parent = n;
 			this.config = c;
 		}
