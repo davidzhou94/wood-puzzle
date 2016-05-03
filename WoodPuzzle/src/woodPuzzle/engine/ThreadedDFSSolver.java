@@ -104,6 +104,7 @@ public class ThreadedDFSSolver extends AbstractSolver {
 		System.out.println("Level complete");
 		while(!children.isEmpty()) {
 			Node child = children.poll();
+			System.out.println("Choosing child with record level " + child.recordLevel + " with " + child.recordLevelCount + " at record level, rejected " + child.rejectCount);
 			this.descend(child);
 		}
 	}
