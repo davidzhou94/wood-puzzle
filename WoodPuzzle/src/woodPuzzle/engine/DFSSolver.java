@@ -12,8 +12,6 @@ public class DFSSolver extends AbstractSolver {
 	private static long count = 0;
 	private static long rejects = 0;
 	private static int record = Integer.MAX_VALUE;
-	private static final int SMALLEST_SHAPE_CELL_COUNT = 5;
-
 	private Node root;
 
 	public DFSSolver(Puzzle p) {
@@ -65,7 +63,7 @@ public class DFSSolver extends AbstractSolver {
 						}
 						if (newConfig.placeShape(s, placement)) {
 							if (!hasIsolatedCells(newConfig, SMALLEST_SHAPE_CELL_COUNT)) {
-								if (newConfig.getUnusedShapes().isEmpty()) {
+								if (newConfig.getUnusedShapes().size() <= UNUSED_PIECES_PERMITTED) {
 									throw new FoundException(newConfig);
 								}
 								this.descend(new Node(newConfig, n));

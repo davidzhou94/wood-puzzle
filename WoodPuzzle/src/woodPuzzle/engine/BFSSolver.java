@@ -92,7 +92,7 @@ public class BFSSolver extends AbstractSolver {
 							if (newConfig.placeShape(s, placement)) {
 								n.valid++;
 								if (!hasIsolatedCells(newConfig, 5)) {
-									if (newConfig.getUnusedShapes().isEmpty()) {
+									if (newConfig.getUnusedShapes().size() <= UNUSED_PIECES_PERMITTED) {
 										throw new FoundException(newConfig);
 									}
 									n.addChild(new Node(n, newConfig));
