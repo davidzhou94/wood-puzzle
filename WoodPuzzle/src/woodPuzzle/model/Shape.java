@@ -53,6 +53,35 @@ public class Shape {
 	}
 	
 	/**
+	 * Used for the lambda expression for rotation transforms. The single
+	 * operation takes a coordinate from the target array and maps it to
+	 * the corresponding cell in the source array (an index).
+	 * @author david
+	 *
+	 */
+	private interface VectorTransform {
+		int op(int x, int y, int z);
+	}
+	
+	/**
+	 * Used with rotate shape to map cells from a given source array
+	 * to a given target array using the given lambda expression to transform
+	 * a coordinate in the target array to a source array index.
+	 * @param src
+	 * @param dest
+	 * @param vt
+	 */
+	private void rotationTransform(int[] src, int[] dest, VectorTransform vt) {
+		for (int x = 0; x < sideLength; x++) {
+			for (int y = 0; y < sideLength; y++) {
+				for (int z = 0; z < sideLength; z++) {
+					dest[this.hashCoordinate(x, y, z)] = src[vt.op(x, y, z)];
+				}
+			}
+		}
+	}
+	
+	/**
 	 * Rotates this shape the given number of rotations along each of two 
 	 * possible axis. Each rotation is 90deg clockwise in the axis facing
 	 * the origin. For example, rotateShape(0, 2) will rotate the shape
@@ -79,36 +108,18 @@ public class Shape {
 			break;
 		case 1:
 			// 90 deg along y-axis
-			for (int x = 0; x < sideLength; x++) {
-				for (int y = 0; y < sideLength; y++) {
-					for (int z = 0; z < sideLength; z++) {
-						int oldx = sideLength - z - 1, oldy = y, oldz = x;
-						ret1[this.hashCoordinate(x, y, z)] = cells[this.hashCoordinate(oldx, oldy, oldz)];
-					}
-				}
-			}
+			this.rotationTransform(
+					cells, ret1, (x, y, z) -> this.hashCoordinate(sideLength - z - 1, y, x));
 			break;
 		case 2:
 			// 180 deg along y-axis
-			for (int x = 0; x < sideLength; x++) {
-				for (int y = 0; y < sideLength; y++) {
-					for (int z = 0; z < sideLength; z++) {
-						int oldx = sideLength - x - 1, oldy = y, oldz = sideLength - z - 1;
-						ret1[this.hashCoordinate(x, y, z)] = cells[this.hashCoordinate(oldx, oldy, oldz)];
-					}
-				}
-			}
+			this.rotationTransform(
+					cells, ret1, (x, y, z) -> this.hashCoordinate(sideLength - x - 1, y, sideLength - z - 1));
 			break;
 		case 3:
 			// 270 deg along y-axis
-			for (int x = 0; x < sideLength; x++) {
-				for (int y = 0; y < sideLength; y++) {
-					for (int z = 0; z < sideLength; z++) {
-						int oldx = z, oldy = y, oldz = sideLength - x - 1;
-						ret1[this.hashCoordinate(x, y, z)] = cells[this.hashCoordinate(oldx, oldy, oldz)];
-					}
-				}
-			}
+			this.rotationTransform(
+					cells, ret1, (x, y, z) -> this.hashCoordinate(z, y, sideLength - x - 1));
 			break;
 		}
 
@@ -120,36 +131,18 @@ public class Shape {
 			break;
 		case 1:
 			// 90 deg along z-axis
-			for (int x = 0; x < sideLength; x++) {
-				for (int y = 0; y < sideLength; y++) {
-					for (int z = 0; z < sideLength; z++) {
-						int oldx = y, oldy = sideLength - x - 1, oldz = z;
-						ret2[this.hashCoordinate(x, y, z)] = ret1[this.hashCoordinate(oldx, oldy, oldz)];
-					}
-				}
-			}
+			this.rotationTransform(
+					ret1, ret2, (x, y, z) -> this.hashCoordinate(y, sideLength - x - 1, y));
 			break;
 		case 2:
 			// 180 deg along z-axis
-			for (int x = 0; x < sideLength; x++) {
-				for (int y = 0; y < sideLength; y++) {
-					for (int z = 0; z < sideLength; z++) {
-						int oldx = sideLength - x - 1, oldy = sideLength - y - 1, oldz = z;
-						ret2[this.hashCoordinate(x, y, z)] = ret1[this.hashCoordinate(oldx, oldy, oldz)];
-					}
-				}
-			}
+			this.rotationTransform(
+					ret1, ret2, (x, y, z) -> this.hashCoordinate(sideLength - x - 1, sideLength - y - 1, z));
 			break;
 		case 3:
 			// 270 deg along z-axis
-			for (int x = 0; x < sideLength; x++) {
-				for (int y = 0; y < sideLength; y++) {
-					for (int z = 0; z < sideLength; z++) {
-						int oldx = sideLength - y - 1, oldy = x, oldz = z;
-						ret2[this.hashCoordinate(x, y, z)] = ret1[this.hashCoordinate(oldx, oldy, oldz)];
-					}
-				}
-			}
+			this.rotationTransform(
+					ret1, ret2, (x, y, z) -> this.hashCoordinate(sideLength - y - 1, x, z));
 			break;
 		}
 
