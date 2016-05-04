@@ -150,6 +150,7 @@ public class ThreadedDFSSolver extends AbstractSolver {
 							// doing one thread at a time but this could be more.
 							t.join();
 						} catch (InterruptedException e) {
+							// this really shouldn't happen
 							e.printStackTrace();
 						}
 						if (dt.solution == null) {
@@ -197,7 +198,7 @@ public class ThreadedDFSSolver extends AbstractSolver {
 			}
 			if (currentRemaining == recordLevel) recordLevelCount++;
 			if (rejectCount > REJECT_LIMIT) throw new EndException();
-			Configuration newConfig = new Configuration(currentConfig);
+
 			// randomly pick a shape
 			Shape s = (Shape) currentConfig.getUnusedShapes().toArray()[rng.nextInt(currentRemaining)];
 
@@ -207,6 +208,7 @@ public class ThreadedDFSSolver extends AbstractSolver {
 					List<Coordinate> placement;
 					for (int yaxis = 0; yaxis <= 3; yaxis++) {
 						for (int zaxis = 0; zaxis <= 3; zaxis++) {
+							Configuration newConfig = new Configuration(currentConfig);
 							int[] rotatedShape = s.rotateShape(yaxis, zaxis);
 							placement = new ArrayList<Coordinate>();
 							for (int i = 0; i < sideLength; i++) {
@@ -218,19 +220,17 @@ public class ThreadedDFSSolver extends AbstractSolver {
 									}
 								}
 							}
-							if (newConfig.placeShape(s, placement)) {
-								if (!hasIsolatedCells(newConfig)) {
-									if (newConfig.getUnusedShapes().isEmpty()) {
-										throw new FoundException(newConfig);
-									}
-									this.descend(new Node(n, newConfig));
-								}  else {
-									rejectCount++;
-								}
-								newConfig = new Configuration(currentConfig);
-							} else {
+							if (!newConfig.placeShape(s, placement)) {
 								rejectCount++;
+								continue;
 							}
+							if (newConfig.getUnusedShapes().isEmpty()) throw new FoundException(newConfig);
+							if (hasIsolatedCells(newConfig)) {
+								rejectCount++;
+								continue;
+							}
+							
+							this.descend(new Node(n, newConfig));
 						}
 					}
 				}

@@ -2,6 +2,7 @@ package woodPuzzle.engine;
 
 import java.util.ArrayList;
 import java.util.List;
+
 import woodPuzzle.model.Configuration;
 import woodPuzzle.model.Coordinate;
 import woodPuzzle.model.Puzzle;
@@ -37,10 +38,12 @@ public class DFSSolver extends AbstractSolver {
 		if (count % 1000 == 0) {
 			System.out.print("\rConfig #" + count + " has " + currentConfig.getUnusedShapes().size() + " unused shapes, after " + rejects + " dead ends, the current best record is " + record);
 		}
-		Configuration newConfig = new Configuration(currentConfig);
+
 		// you don't actually need to iterate through the shapes, in theory every shape has at 
 		// least one valid placement so it suffices to pick any shape and try each of the possible positions 
 		// for that shape in the current configuration.
+		// TODO: The above statement is incorrect - there are 17 shapes given in the default puzzle even
+		// though it will ultimately only fit 16. This algorithm needs to be corrected to reflect that.
 		Shape s = currentConfig.getUnusedShapes().iterator().next();
 
 		int sideLength = s.getSideLength();
@@ -50,6 +53,7 @@ public class DFSSolver extends AbstractSolver {
 				if (n.parent == null) System.out.println("\nAdvanced 1 position on root");
 				for (int yaxis = 0; yaxis <= 3; yaxis++) {
 					for (int zaxis = 0; zaxis <= 3; zaxis++) {
+						Configuration newConfig = new Configuration(currentConfig);
 						int[] rotatedShape = s.rotateShape(yaxis, zaxis);
 						placement = new ArrayList<Coordinate>();
 						for (int i = 0; i < sideLength; i++) {
@@ -61,19 +65,18 @@ public class DFSSolver extends AbstractSolver {
 								}
 							}
 						}
-						if (newConfig.placeShape(s, placement)) {
-							if (!hasIsolatedCells(newConfig)) {
-								if (newConfig.getUnusedShapes().isEmpty()) {
-									throw new FoundException(newConfig);
-								}
-								this.descend(new Node(newConfig, n));
-							}  else {
-								rejects++;
-							}
-							newConfig = new Configuration(currentConfig);
-						} else {
+						
+						if (!newConfig.placeShape(s, placement)) {
 							rejects++;
+							continue;
 						}
+						if (newConfig.getUnusedShapes().isEmpty()) throw new FoundException(newConfig);
+						if (hasIsolatedCells(newConfig)) {
+							rejects++;
+							continue;
+						}
+						
+						this.descend(new Node(newConfig, n));
 					}
 				}
 			}

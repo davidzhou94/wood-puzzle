@@ -2,6 +2,7 @@ package woodPuzzle.engine;
 
 import java.util.ArrayList;
 import java.util.List;
+
 import woodPuzzle.model.Configuration;
 import woodPuzzle.model.Coordinate;
 import woodPuzzle.model.Puzzle;
@@ -70,7 +71,6 @@ public class BFSSolver extends AbstractSolver {
 	
 	private void descend(Node n) throws FoundException {
 		Configuration currentConfig = n.config;
-		Configuration newConfig = new Configuration(currentConfig);
 		for (Shape s : currentConfig.getUnusedShapes()) {
 			int sideLength = s.getSideLength();
 			for(int x = 0; x < this.puzzle.getWidth() - 1; x++) {
@@ -78,6 +78,7 @@ public class BFSSolver extends AbstractSolver {
 					List<Coordinate> placement;
 					for (int yaxis = 0; yaxis <= 3; yaxis++) {
 						for (int zaxis = 0; zaxis <= 3; zaxis++) {
+							Configuration newConfig = new Configuration(currentConfig);
 							int[] rotatedShape = s.rotateShape(yaxis, zaxis);
 							placement = new ArrayList<Coordinate>();
 							for (int i = 0; i < sideLength; i++) {
@@ -89,18 +90,17 @@ public class BFSSolver extends AbstractSolver {
 									}
 								}
 							}
-							if (newConfig.placeShape(s, placement)) {
-								n.valid++;
-								if (!hasIsolatedCells(newConfig)) {
-									if (newConfig.getUnusedShapes().isEmpty()) {
-										throw new FoundException(newConfig);
-									}
-									n.addChild(new Node(n, newConfig));
-								} 
-								newConfig = new Configuration(currentConfig);
-							} else {
+							if (!newConfig.placeShape(s, placement)) {
 								n.invalid++;
+								continue;
 							}
+							if (newConfig.getUnusedShapes().isEmpty()) throw new FoundException(newConfig);
+							if (hasIsolatedCells(newConfig)) {
+								n.invalid++;
+								continue;
+							}
+							
+							n.addChild(new Node(n, newConfig));
 						}
 					}
 				}
