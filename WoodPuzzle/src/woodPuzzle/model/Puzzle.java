@@ -11,6 +11,10 @@ public class Puzzle {
 	protected final int length;
 	protected final int totalCells;
 	protected final int shapeSide;
+	protected final int shapeCount;
+	protected final int minShapeSize;
+	protected final int maxShapeSize;
+	protected final int minShapeFit;
 	protected Set<Shape> shapes;
 	
 	public int getWidth() {
@@ -29,12 +33,28 @@ public class Puzzle {
 		return totalCells;
 	}
 	
+	public int getShapeCount() {
+		return shapeCount;
+	}
+	
+	public int getMinShapeSize() {
+		return minShapeSize;
+	}
+	
+	public int getMaxShapeSize() {
+		return maxShapeSize;
+	}
+	
+	public int getMinShapeFit() {
+		return minShapeFit;
+	}
+	
 	public Set<Shape> getShapes() {
 		return this.shapes;
 	}
 
 	/**
-	 * The base constructor. Constructs an empty puzzle with the 
+	 * Creates an empty puzzle with the 
 	 * specified box dimensions and shape dimensions.
 	 * @param width The box width (x-axis)
 	 * @param height The box height (y-axis)
@@ -42,12 +62,17 @@ public class Puzzle {
 	 * @param shapeSide The side length of the cube that can contain
 	 *        the largest shape
 	 */
-	public Puzzle(int width, int height, int length, int shapeSide) {
+	public Puzzle(int width, int height, int length, int shapeSide,
+			int shapeCount, int minShapeSize, int maxShapeSize, int minShapeFit) {
 		this.width = width;
 		this.height = height;
 		this.length = length;
 		this.totalCells = width * height * length;
 		this.shapeSide = shapeSide;
+		this.shapeCount = shapeCount;
+		this.minShapeSize = minShapeSize;
+		this.maxShapeSize = maxShapeSize;
+		this.minShapeFit = minShapeFit;
 		this.shapes = new HashSet<Shape>();
 	}
 	

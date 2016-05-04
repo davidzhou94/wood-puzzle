@@ -12,8 +12,6 @@ import woodPuzzle.model.Shape;
 
 public abstract class AbstractSolver {
 
-	protected static final int SMALLEST_SHAPE_CELL_COUNT = 5;
-	protected static final int UNUSED_PIECES_PERMITTED = 0;
 	protected Puzzle puzzle;
 
 	public AbstractSolver(Puzzle p) {
@@ -55,9 +53,22 @@ public abstract class AbstractSolver {
 	}
 	
 	// Utility methods:
-	public boolean hasIsolatedCells(Configuration newConfig, int validGroupSize) {
+	
+	
+	
+	/**
+	 * Checks whether a configuration has isolated cells. That is,
+	 * if a group of empty and connected cells is smaller than the
+	 * given minimum shape size, then it is isolated. Furthermore,
+	 * if all shapes are of identical size then a similar group with
+	 * the number of empty cells not a multiple of the shape size is
+	 * also considered isolated.
+	 * @param config The configuration to check.
+	 * @return true if there are isolated cells, otherwise false.
+	 */
+	public boolean hasIsolatedCells(Configuration config) {
 		boolean visited[] = new boolean[this.puzzle.getTotalCells()];
-		Shape cells[] = newConfig.getCells();
+		Shape cells[] = config.getCells();
 		for (int i = 0; i < this.puzzle.getTotalCells(); i++) visited[i] = false;
 		for (int x = 0; x < this.puzzle.getWidth(); x++) {
 			for (int y = 0; y < this.puzzle.getHeight(); y++) {
@@ -132,7 +143,9 @@ public abstract class AbstractSolver {
 							}
 						}
 					}
-					if (emptyCount % validGroupSize != 0) return true;
+					if (emptyCount < this.puzzle.getMinShapeSize()) return true;
+					if (this.puzzle.getMinShapeSize() == this.puzzle.getMaxShapeSize() &&
+							emptyCount % this.puzzle.getMaxShapeSize() != 0) return true;
 				}
 			}
 		}

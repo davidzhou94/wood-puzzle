@@ -16,13 +16,18 @@ import woodPuzzle.model.Shape;
 public class ConfigurationTest {
 	Puzzle p;
 	Shape s1, s2, s3;
-	static final int SHAPE_SIDE = 3;
 	static final int WIDTH = 5;
 	static final int HEIGHT = 2;
 	static final int LENGTH = 5;
+	static final int SHAPE_SIDE = 3;
+	static final int SHAPE_COUNT = 3;
+	static final int MIN_SHAPE_SIZE = 5;
+	static final int MAX_SHAPE_SIZE = 5;
+	static final int MIN_SHAPE_FIT = 3;
 	@Before
 	public void setUp() throws Exception {
-		p = new Puzzle(WIDTH, HEIGHT, LENGTH, SHAPE_SIDE);
+		p = new Puzzle(WIDTH, HEIGHT, LENGTH, SHAPE_SIDE,
+				SHAPE_COUNT, MIN_SHAPE_SIZE, MAX_SHAPE_SIZE, MIN_SHAPE_FIT);
 		List<Coordinate> shapeCells = new ArrayList<Coordinate>();
 		shapeCells.add(new Coordinate(0, 0, 0));
 		shapeCells.add(new Coordinate(1, 0, 0));

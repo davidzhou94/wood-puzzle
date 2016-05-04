@@ -1,15 +1,18 @@
 package woodPuzzle.engine;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
 
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
+import org.xml.sax.SAXException;
 
 import woodPuzzle.model.Coordinate;
 import woodPuzzle.model.Puzzle;
@@ -18,6 +21,13 @@ import woodPuzzle.model.Shape;
 public class XMLReader {
 	private XMLReader() { }
 	
+	/**
+	 * Utility method for parsing a single Shape from the given
+	 * XML file. Called only from buildPuzzle.
+	 * @param sideLength The side length of the cube that contains the largest shape.
+	 * @param n The XML node containing the information for the given shape.
+	 * @return A new instance of Shape.
+	 */
 	private static Shape parseShape(int sideLength, Node n) {
 		List<Coordinate> shapeCells = new ArrayList<Coordinate>();
 		NodeList nList = n.getChildNodes();
@@ -34,33 +44,45 @@ public class XMLReader {
 		return new Shape(sideLength, shapeCells);
 	}
 
-	public static Puzzle buildPuzzle(String filePath) {
-		int width = 0, height = 0, length = 0, shapeSideLength = 0;
+	/**
+	 * Utility method for reading in an XML file and building an
+	 * instance of a puzzle from the XML specification.
+	 * @param filePath The path to the file.
+	 * @return A new instance of Puzzle.
+	 * @throws IOException 
+	 * @throws SAXException 
+	 * @throws ParserConfigurationException 
+	 */
+	public static Puzzle buildPuzzle(String filePath) throws SAXException, IOException, ParserConfigurationException {
+		
 		Puzzle puzzle = null;
-		try {
-			File fXmlFile = new File(filePath);
-			DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
-			DocumentBuilder dBuilder = dbFactory.newDocumentBuilder();
-			Document doc = dBuilder.parse(fXmlFile);
+
+		File fXmlFile = new File(filePath);
+		DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
+		DocumentBuilder dBuilder = dbFactory.newDocumentBuilder();
+		Document doc = dBuilder.parse(fXmlFile);
+		
+		Element rootElem = doc.getDocumentElement(); 
+		rootElem.normalize();
+		
+		int width, height, length, shapeSide, shapeCount, minShapeSize, maxShapeSize, minShapeFit;
+		width = Integer.parseInt(rootElem.getAttribute("width"));
+		height = Integer.parseInt(rootElem.getAttribute("height"));
+		length = Integer.parseInt(rootElem.getAttribute("length"));
+		
+		shapeSide = Integer.parseInt(rootElem.getAttribute("shapeSide"));
+		shapeCount = Integer.parseInt(rootElem.getAttribute("shapeCount"));
+		minShapeSize = Integer.parseInt(rootElem.getAttribute("minShapeSize"));
+		maxShapeSize = Integer.parseInt(rootElem.getAttribute("maxShapeSize"));
+		minShapeFit = Integer.parseInt(rootElem.getAttribute("minShapeFit"));
 			
-			Element rootElem = doc.getDocumentElement(); 
-			rootElem.normalize();
-			
-			width = Integer.parseInt(rootElem.getAttribute("width"));
-			height = Integer.parseInt(rootElem.getAttribute("height"));
-			length = Integer.parseInt(rootElem.getAttribute("length"));
-			
-			shapeSideLength = Integer.parseInt(rootElem.getAttribute("shapeSide"));
-				
-			puzzle = new Puzzle(width, height, length, shapeSideLength);
-			NodeList nList = doc.getElementsByTagName("Shape");
-			for (int i = 0; i < nList.getLength(); i++) {
-				puzzle.addShape(parseShape(shapeSideLength, nList.item(i)));
-			}
-				
-		} catch (Exception e) {
-			e.printStackTrace();
+		puzzle = new Puzzle(width, height, length, shapeSide, 
+				shapeCount, minShapeSize, maxShapeSize, minShapeFit);
+		NodeList nList = doc.getElementsByTagName("Shape");
+		for (int i = 0; i < nList.getLength(); i++) {
+			puzzle.addShape(parseShape(shapeSide, nList.item(i)));
 		}
+
 		return puzzle;
 	}
 }

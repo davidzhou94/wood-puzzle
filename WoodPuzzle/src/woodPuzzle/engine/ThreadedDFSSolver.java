@@ -71,7 +71,7 @@ public class ThreadedDFSSolver extends AbstractSolver {
 							}
 							if (!newConfig.placeShape(s, placement)) continue;
 							if (newConfig.getUnusedShapes().isEmpty()) throw new FoundException(newConfig);
-							if (hasIsolatedCells(newConfig, SMALLEST_SHAPE_CELL_COUNT)) continue;
+							if (hasIsolatedCells(newConfig)) continue;
 							
 							Node child = new Node(root, newConfig);
 							DescendThread dt = new DescendThread(child, puzzle);
@@ -140,7 +140,7 @@ public class ThreadedDFSSolver extends AbstractSolver {
 						}
 						if (!newConfig.placeShape(s, placement)) continue;
 						if (newConfig.getUnusedShapes().isEmpty()) throw new FoundException(newConfig);
-						if (hasIsolatedCells(newConfig, SMALLEST_SHAPE_CELL_COUNT)) continue;
+						if (hasIsolatedCells(newConfig)) continue;
 						
 						Node child = new Node(n, newConfig);
 						DescendThread dt = new DescendThread(child, puzzle);
@@ -219,8 +219,8 @@ public class ThreadedDFSSolver extends AbstractSolver {
 								}
 							}
 							if (newConfig.placeShape(s, placement)) {
-								if (!hasIsolatedCells(newConfig, SMALLEST_SHAPE_CELL_COUNT)) {
-									if (newConfig.getUnusedShapes().size() <= UNUSED_PIECES_PERMITTED) {
+								if (!hasIsolatedCells(newConfig)) {
+									if (newConfig.getUnusedShapes().isEmpty()) {
 										throw new FoundException(newConfig);
 									}
 									this.descend(new Node(n, newConfig));

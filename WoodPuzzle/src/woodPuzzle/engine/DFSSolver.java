@@ -62,8 +62,8 @@ public class DFSSolver extends AbstractSolver {
 							}
 						}
 						if (newConfig.placeShape(s, placement)) {
-							if (!hasIsolatedCells(newConfig, SMALLEST_SHAPE_CELL_COUNT)) {
-								if (newConfig.getUnusedShapes().size() <= UNUSED_PIECES_PERMITTED) {
+							if (!hasIsolatedCells(newConfig)) {
+								if (newConfig.getUnusedShapes().isEmpty()) {
 									throw new FoundException(newConfig);
 								}
 								this.descend(new Node(newConfig, n));

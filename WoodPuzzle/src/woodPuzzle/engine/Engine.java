@@ -1,5 +1,11 @@
 package woodPuzzle.engine;
 
+import java.io.IOException;
+
+import javax.xml.parsers.ParserConfigurationException;
+
+import org.xml.sax.SAXException;
+
 import woodPuzzle.model.Puzzle;
 
 public class Engine {
@@ -18,10 +24,6 @@ public class Engine {
 		return instance;
 	}
 	
-	private void setupModel(String filePath) {
-		puzzle = XMLReader.buildPuzzle(filePath);
-	}
-	
 	private void setSolver(AbstractSolver solver) {
 		this.solver = solver;
 	}
@@ -32,7 +34,17 @@ public class Engine {
 	
 	public static void main(String[] args) {
 		Engine e = Engine.getInstance();
-		e.setupModel(args[0]);
+
+		try {
+			e.puzzle = XMLReader.buildPuzzle(args[0]);
+		} catch (SAXException | ParserConfigurationException ex) {
+			System.out.println("Error reading XML file: " + ex.getMessage());
+			return;
+		} catch (IOException ex) {
+			System.out.println("Error locating or opening given file: " + ex.getMessage());
+			return;
+		}
+
 		//e.setSolver(new BFSSolver(e.puzzle));
 		//e.setSolver(new DFSSolver(e.puzzle));
 		e.setSolver(new ThreadedDFSSolver(e.puzzle));
