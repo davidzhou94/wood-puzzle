@@ -27,11 +27,83 @@ public class ThreadedDFSSolver extends AbstractSolver {
 	public Configuration findSolution() {
 		this.root.config = new Configuration(this.puzzle);
 		try {
-			this.descend(root);
+			this.topLevelDescend(root);
 		} catch (FoundException ex) {
 			return ex.config;
 		}
 		return null;
+	}
+	
+	private void topLevelDescend(Node root) throws FoundException {
+		Queue<Node> children = new PriorityQueue<Node>(10, new Comparator<Node>() {
+			public int compare(Node n1, Node n2) {
+				if (n1.recordLevel != n2.recordLevel) return n1.recordLevel - n2.recordLevel;
+				if (n1.recordLevelCount != n2.recordLevelCount) return (int) (n2.recordLevelCount - n1.recordLevelCount);
+				return (int) (n1.rejectCount - n2.rejectCount);
+			}
+		});
+		
+		Configuration rootConfig = root.config;
+		
+		for (Shape toDelete : rootConfig.getUnusedShapes()) {
+			Configuration currentConfig = new Configuration(rootConfig);
+			currentConfig.removeShape(toDelete);
+			Shape s = (Shape) currentConfig.getUnusedShapes().toArray()[rng.nextInt(currentConfig.getUnusedShapes().size())]; 
+			int sideLength = s.getSideLength();
+			for(int x = 0; x < this.puzzle.getWidth() - 1; x++) {
+				for(int z = 0; z < this.puzzle.getLength() - 1; z++) {
+					List<Coordinate> placement;
+					System.out.println("Coordinate (x,z) = (" + x + ", " + z + ")");
+					for (int yaxis = 0; yaxis <= 3; yaxis++) {
+						for (int zaxis = 0; zaxis <= 3; zaxis++) {
+							System.out.println("  Rotation (y,z) axis = (" + yaxis + ", " + zaxis + ")");
+							Configuration newConfig = new Configuration(currentConfig);
+							int[] rotatedShape = s.rotateShape(yaxis, zaxis);
+							placement = new ArrayList<Coordinate>();
+							for (int i = 0; i < sideLength; i++) {
+								for (int j = 0; j < sideLength; j++) {
+									for (int k = 0; k < sideLength; k++) {
+										if (rotatedShape[s.hashCoordinate(i, j, k)] == 1) {
+											placement.add(new Coordinate(i + x, j, k + z));
+										}
+									}
+								}
+							}
+							if (!newConfig.placeShape(s, placement)) continue;
+							if (newConfig.getUnusedShapes().isEmpty()) throw new FoundException(newConfig);
+							if (hasIsolatedCells(newConfig, SMALLEST_SHAPE_CELL_COUNT)) continue;
+							
+							Node child = new Node(root, newConfig);
+							DescendThread dt = new DescendThread(child, puzzle);
+							Thread t = new Thread(dt);
+							t.start();
+							try {
+								// doing one thread at a time but this could be more.
+								t.join();
+							} catch (InterruptedException e) {
+								e.printStackTrace();
+							}
+							if (dt.solution == null) {
+								child.recordLevel = dt.recordLevel;
+								child.recordLevelCount = dt.recordLevelCount;
+								child.rejectCount = dt.rejectCount;
+								children.add(child);
+								System.out.println("    Added child with record level " + dt.recordLevel + " with " + dt.recordLevelCount + " at record level, rejected " + dt.rejectCount);
+							} else {
+								throw new FoundException(dt.solution);
+							}
+						}
+					}
+				}
+			}
+		}
+		
+		System.out.println("Top level complete");
+		while(!children.isEmpty()) {
+			Node child = children.poll();
+			System.out.println("Choosing child with record level " + child.recordLevel + " with " + child.recordLevelCount + " at record level, rejected " + child.rejectCount);
+			this.descend(child);
+		}
 	}
 
 	private void descend(Node n) throws FoundException {
@@ -52,10 +124,8 @@ public class ThreadedDFSSolver extends AbstractSolver {
 		for(int x = 0; x < this.puzzle.getWidth() - 1; x++) {
 			for(int z = 0; z < this.puzzle.getLength() - 1; z++) {
 				List<Coordinate> placement;
-				System.out.println("Coordinate (x,z) = (" + x + ", " + z + ")");
 				for (int yaxis = 0; yaxis <= 3; yaxis++) {
 					for (int zaxis = 0; zaxis <= 3; zaxis++) {
-						System.out.println("  Rotation (y,z) axis = (" + yaxis + ", " + zaxis + ")");
 						Configuration newConfig = new Configuration(currentConfig);
 						int[] rotatedShape = s.rotateShape(yaxis, zaxis);
 						placement = new ArrayList<Coordinate>();
@@ -87,7 +157,6 @@ public class ThreadedDFSSolver extends AbstractSolver {
 							child.recordLevelCount = dt.recordLevelCount;
 							child.rejectCount = dt.rejectCount;
 							children.add(child);
-							System.out.println("    Added child with record level " + dt.recordLevel + " with " + dt.recordLevelCount + " at record level, rejected " + dt.rejectCount);
 						} else {
 							throw new FoundException(dt.solution);
 						}
@@ -96,10 +165,8 @@ public class ThreadedDFSSolver extends AbstractSolver {
 			}
 		}
 		
-		System.out.println("Level complete");
 		while(!children.isEmpty()) {
 			Node child = children.poll();
-			System.out.println("Choosing child with record level " + child.recordLevel + " with " + child.recordLevelCount + " at record level, rejected " + child.rejectCount);
 			this.descend(child);
 		}
 	}

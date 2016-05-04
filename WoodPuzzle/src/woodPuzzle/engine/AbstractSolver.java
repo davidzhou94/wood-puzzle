@@ -13,7 +13,7 @@ import woodPuzzle.model.Shape;
 public abstract class AbstractSolver {
 
 	protected static final int SMALLEST_SHAPE_CELL_COUNT = 5;
-	protected static final int UNUSED_PIECES_PERMITTED = 1;
+	protected static final int UNUSED_PIECES_PERMITTED = 0;
 	protected Puzzle puzzle;
 
 	public AbstractSolver(Puzzle p) {

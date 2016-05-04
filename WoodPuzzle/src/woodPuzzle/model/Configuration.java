@@ -90,4 +90,8 @@ public class Configuration {
 		}
 		return true;
 	}
+	
+	public void removeShape(Shape s) {
+		if (unusedShapes.contains(s)) unusedShapes.remove(s);
+	}
 }
