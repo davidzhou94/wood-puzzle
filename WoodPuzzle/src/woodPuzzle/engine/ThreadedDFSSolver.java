@@ -91,7 +91,7 @@ public class ThreadedDFSSolver extends AbstractSolver {
 
 		@Override
 		public void succeed(Configuration newConfig, Node n) throws FoundException, EndException {
-			ThreadedDFSNode child = new ThreadedDFSNode((ThreadedDFSNode) n, newConfig);
+			ThreadedDFSNode child = new ThreadedDFSNode(n, newConfig);
 			DescendThread dt = new DescendThread(child, puzzle, caller);
 			Thread t = new Thread(dt);
 			t.start();
@@ -285,11 +285,11 @@ public class ThreadedDFSSolver extends AbstractSolver {
 		long recordLevelCount = 0;
 		long rejectCount = 0;
 		
-		ThreadedDFSNode(ThreadedDFSNode n) {
+		ThreadedDFSNode(Node n) {
 			super(n);
 		}
 
-		ThreadedDFSNode(ThreadedDFSNode n, Configuration c) {
+		ThreadedDFSNode(Node n, Configuration c) {
 			super(n, c);
 		}
 	}
