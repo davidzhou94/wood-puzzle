@@ -19,7 +19,16 @@ public abstract class AbstractSolver {
 	}
 	
 	public void solve(Puzzle p) {
+		long begin = System.currentTimeMillis();
 		Configuration sol = this.findSolution();
+		long elapsed = System.currentTimeMillis() - begin;
+		long second = (elapsed / 1000) % 60;
+		long minute = (elapsed / (1000 * 60)) % 60;
+		long hour = (elapsed / (1000 * 60 * 60)) % 24;
+		elapsed %= 1000;
+
+		String time = String.format("%02d:%02d:%02d:%d", hour, minute, second, elapsed);
+		System.out.println("\nTime elapsed: " + time);
 		this.printSolution(sol, p);
 	}
 	
