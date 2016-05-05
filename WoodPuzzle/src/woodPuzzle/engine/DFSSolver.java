@@ -1,10 +1,8 @@
 package woodPuzzle.engine;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.Random;
 
 import woodPuzzle.model.Configuration;
-import woodPuzzle.model.Coordinate;
 import woodPuzzle.model.Puzzle;
 import woodPuzzle.model.Shape;
 
@@ -14,10 +12,14 @@ public class DFSSolver extends AbstractSolver {
 	private static long rejects = 0;
 	private static int record = Integer.MAX_VALUE;
 	private Node root;
+	private Random rng;
+	private Strategy strategy;
 
 	public DFSSolver(Puzzle p) {
 		super(p);
-		root = new Node(null);
+		this.root = new Node(null);
+		this.rng = new Random();
+		this.strategy = new DFSStrategy(this);
 	}
 
 	@Override
@@ -31,80 +33,101 @@ public class DFSSolver extends AbstractSolver {
 		return null;
 	}
 
-	private void descend(Node n) throws FoundException {
-		count++;
-		Configuration currentConfig = n.config;
-		if (currentConfig.getUnusedShapes().size() < record) record = currentConfig.getUnusedShapes().size();
-		if (count % 1000 == 0) {
-			System.out.print("\rConfig #" + count + " has " + currentConfig.getUnusedShapes().size() + " unused shapes, after " + rejects + " dead ends, the current best record is " + record);
+	/**
+	 * The strategy for DFS-order traversals of the possible 
+	 * configurations tree.
+	 * @author david
+	 *
+	 */
+	class DFSStrategy implements Strategy {
+		DFSSolver caller;
+		DFSStrategy(DFSSolver dfsSolver) {
+			this.caller = dfsSolver;
 		}
 
-		// you don't actually need to iterate through the shapes, in theory every shape has at 
-		// least one valid placement so it suffices to pick any shape and try each of the possible positions 
-		// for that shape in the current configuration.
-		// TODO: The above statement is incorrect - there are 17 shapes given in the default puzzle even
-		// though it will ultimately only fit 16. This algorithm needs to be corrected to reflect that.
-		Shape s = currentConfig.getUnusedShapes().iterator().next();
-
-		int sideLength = s.getSideLength();
-		for(int x = 0; x < this.puzzle.getWidth() - 1; x++) {
-			for(int z = 0; z < this.puzzle.getLength() - 1; z++) {
-				List<Coordinate> placement;
-				if (n.parent == null) System.out.println("\nAdvanced 1 position on root");
-				for (int yaxis = 0; yaxis <= 3; yaxis++) {
-					for (int zaxis = 0; zaxis <= 3; zaxis++) {
-						Configuration newConfig = new Configuration(currentConfig);
-						int[] rotatedShape = s.rotateShape(yaxis, zaxis);
-						placement = new ArrayList<Coordinate>();
-						for (int i = 0; i < sideLength; i++) {
-							for (int j = 0; j < sideLength; j++) {
-								for (int k = 0; k < sideLength; k++) {
-									if (rotatedShape[s.hashCoordinate(i, j, k)] == 1) {
-										placement.add(new Coordinate(i + x, j, k + z));
-									}
-								}
-							}
-						}
-						
-						if (!newConfig.placeShape(s, placement)) {
-							rejects++;
-							continue;
-						}
-						if (newConfig.getUnusedShapes().isEmpty()) throw new FoundException(newConfig);
-						if (hasIsolatedCells(newConfig)) {
-							rejects++;
-							continue;
-						}
-						
-						this.descend(new Node(newConfig, n));
-					}
-				}
+		@Override
+		public void preTraversal(Configuration c) throws EndException {
+			count++;
+			if (c.getUnusedShapes().size() < record) record = c.getUnusedShapes().size();
+			if (count % 1000 == 0) {
+				System.out.print("\rConfig #" + count + " has " + c.getUnusedShapes().size() + " unused shapes, after " + rejects + " dead ends, the current best record is " + record);
 			}
 		}
+
+		@Override
+		public Shape determineShape(Configuration c) {
+			return (Shape) c.getUnusedShapes().toArray()[rng.nextInt(c.getUnusedShapes().size())];
+		}
+
+		@Override
+		public void placeFailure() {
+			rejects++;
+		}
+
+		@Override
+		public void isolatedFailure() {
+			rejects++;
+		}
+
+		@Override
+		public void succeed(Configuration newConfig, Node n) throws FoundException, EndException {
+			if (newConfig.getUnusedShapes().size() < record) {
+				record = newConfig.getUnusedShapes().size();
+			}
+			Node child = new Node(n, newConfig);
+			caller.traverse(child, this);
+		}
 	}
-
-	class Node {
-		public Node parent;
-		public Configuration config;
-		public Node(Node n) {
-			this.parent = n;
-		}
-
-		public Node(Configuration c, Node n) {
-			this.parent = n;
-			this.config = c;
-		}
+	
+	private void descend(Node n) throws FoundException {
+		Configuration currentConfig = root.config;
+		
+		Shape[] set = new Shape[currentConfig.getUnusedShapes().size()];
+		set = currentConfig.getUnusedShapes().toArray(set);
+	    Shape[] subset = new Shape[this.puzzle.getShapeCount() - this.puzzle.getMinShapeFit()];
+	    if (root.parent == null) {
+	    	topLevelRecurse(set, subset, 0, 0, currentConfig);
+	    } else {
+	    	try {
+				this.traverse(root, strategy);
+			} catch (EndException e) {
+				// Can safely ignore, will not generate under DFSStrategy
+			}
+	    }
+	    
+	    return;
 	}
-
-	class FoundException extends Exception {
-
-		/**
-		 * 
-		 */
-		private static final long serialVersionUID = 5453975780718671130L;
-		public Configuration config;
-		public FoundException(Configuration config) {
-			this.config = config;
-		}
+	
+	/**
+	 * Recursively finds all n choose k subsets of the set of unused shapes
+	 * and removes those shapes from the set of unused shapes before running
+	 * the usual DFS traversal of the children nodes. Here n is the number of
+	 * "extra" shapes that are left unused when the minimum number of shapes 
+	 * have been used to solve the puzzle.
+	 * @param set The original set of shapes.
+	 * @param subset The current working subset of shapes.
+	 * @param subsetSize The size of the working subset.
+	 * @param nextIndex The next index in the original set.
+	 * @param rootConfig The root configuration with the original set of shapes.
+	 * @throws FoundException Thrown when a solution is found.
+	 */
+	private void topLevelRecurse(Shape[] set, Shape[] subset, int subsetSize, int nextIndex, 
+			Configuration rootConfig) throws FoundException {
+	    if (subsetSize == subset.length) {
+	    	Configuration currentConfig = new Configuration(rootConfig);
+	    	for (int i = 0; i < subset.length; i++) {
+	    		currentConfig.removeShape(subset[i]);
+	    	}
+			try {
+				this.traverse(new Node(root, currentConfig), strategy);
+			} catch (EndException e) {
+				// Can safely ignore, will not generate under DFSStrategy
+			}
+	    } else {
+	        for (int j = nextIndex; j < set.length; j++) {
+	            subset[subsetSize] = set[j];
+	            topLevelRecurse(set, subset, subsetSize + 1, j + 1, rootConfig);
+	        }
+	    }
 	}
 }
