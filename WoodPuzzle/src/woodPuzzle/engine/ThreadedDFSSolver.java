@@ -248,7 +248,7 @@ public class ThreadedDFSSolver extends AbstractSolver {
 
 			@Override
 			public void succeed(Configuration newConfig, Node n) throws FoundException, EndException {
-				caller.traverse(new ThreadedDFSNode((ThreadedDFSNode) n, newConfig), this);
+				caller.traverse(new ThreadedDFSNode(n, newConfig), this);
 			}
 			
 		}
