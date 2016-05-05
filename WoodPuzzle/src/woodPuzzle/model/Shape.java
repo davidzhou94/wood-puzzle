@@ -132,7 +132,7 @@ public class Shape {
 		case 1:
 			// 90 deg along z-axis
 			this.rotationTransform(
-					ret1, ret2, (x, y, z) -> this.hashCoordinate(y, sideLength - x - 1, y));
+					ret1, ret2, (x, y, z) -> this.hashCoordinate(y, sideLength - x - 1, z));
 			break;
 		case 2:
 			// 180 deg along z-axis
