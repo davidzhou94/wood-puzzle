@@ -9,6 +9,10 @@ public class Configuration {
 	private final Puzzle puzzle;
 	private Shape cells[];
 	private Set<Shape> unusedShapes; 
+	
+	public Puzzle getPuzzle() {
+		return puzzle;
+	}
 
 	public Shape[] getCells() {
 		return cells;

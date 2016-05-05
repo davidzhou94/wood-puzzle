@@ -29,7 +29,7 @@ public class Engine {
 	}
 	
 	private void solve() {
-		this.solver.solve(puzzle);
+		this.solver.solve();
 	}
 	
 	public static void main(String[] args) {
