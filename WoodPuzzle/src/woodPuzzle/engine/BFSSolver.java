@@ -2,30 +2,34 @@ package woodPuzzle.engine;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Random;
 
 import woodPuzzle.model.Configuration;
-import woodPuzzle.model.Coordinate;
 import woodPuzzle.model.Puzzle;
 import woodPuzzle.model.Shape;
 
 public class BFSSolver extends AbstractSolver {
 	
-	private Node root;
+	private BFSNode root;
+	private Random rng;
+	private Strategy strategy;
 
 	public BFSSolver(Puzzle p) {
 		super(p);
-		root = new Node(null);
+		this.root = new BFSNode(null);
+		this.rng = new Random(); 
+		this.strategy = new BFSStrategy(this);
 	}
 
 	@Override
 	public Configuration findSolution() {
 		this.root.config = new Configuration(this.puzzle);
 		try {
-			Node n = root;
+			BFSNode n = root;
 			this.descend(n);
 			while (true) {
-				List<Node> prune = new ArrayList<Node>();
-				for (Node c : n.children) {
+				List<BFSNode> prune = new ArrayList<BFSNode>();
+				for (BFSNode c : n.children) {
 					if (c.children.isEmpty()) {
 						this.descend(c);
 						if (c.children.isEmpty()) {
@@ -41,18 +45,18 @@ public class BFSSolver extends AbstractSolver {
 					n.children.remove(c);
 				}
 				if (n.children.isEmpty()) {
-					Node c = n;
-					n = c.parent;
+					BFSNode c = n;
+					n = (BFSNode) c.parent;
 					n.invalid += c.invalid + 1;
 					n.valid--;
 					n.children.remove(c);
-					System.out.println("I have reached a dead end");
+//					System.out.println("I have reached a dead end");
 					continue;
 				}
-				Node bestConfig = n.children.get(0);
+				BFSNode bestConfig = n.children.get(0);
 				double bestScore = (double)(bestConfig.valid) / (double)(bestConfig.invalid + bestConfig.valid);
 				double worstScore = bestScore;
-				for (Node c : n.children) {
+				for (BFSNode c : n.children) {
 					double score = (double)(c.valid) / (double)(c.invalid + c.valid);
 					if (score > bestScore) {
 						bestConfig = c;
@@ -61,7 +65,7 @@ public class BFSSolver extends AbstractSolver {
 					if (score < worstScore) worstScore = score;
 				}
 				n = bestConfig;
-				System.out.println("I chose a node with score " + bestScore + " the worst score was " + worstScore);
+//				System.out.println("I chose a node with score " + bestScore + " the worst score was " + worstScore);
 			}
 		} catch (FoundException ex) {
 			return ex.config;
@@ -69,79 +73,116 @@ public class BFSSolver extends AbstractSolver {
 		//return null;
 	}
 	
-	private void descend(Node n) throws FoundException {
-		Configuration currentConfig = n.config;
-		for (Shape s : currentConfig.getUnusedShapes()) {
-			int sideLength = s.getSideLength();
-			for(int x = 0; x < this.puzzle.getWidth() - 1; x++) {
-				for(int z = 0; z < this.puzzle.getLength() - 1; z++) {
-					List<Coordinate> placement;
-					for (int yaxis = 0; yaxis <= 3; yaxis++) {
-						for (int zaxis = 0; zaxis <= 3; zaxis++) {
-							Configuration newConfig = new Configuration(currentConfig);
-							int[] rotatedShape = s.rotateShape(yaxis, zaxis);
-							placement = new ArrayList<Coordinate>();
-							for (int i = 0; i < sideLength; i++) {
-								for (int j = 0; j < sideLength; j++) {
-									for (int k = 0; k < sideLength; k++) {
-										if (rotatedShape[s.hashCoordinate(i, j, k)] == 1) {
-											placement.add(new Coordinate(i + x, j, k + z));
-										}
-									}
-								}
-							}
-							if (!newConfig.placeShape(s, placement)) {
-								n.invalid++;
-								continue;
-							}
-							if (newConfig.getUnusedShapes().isEmpty()) throw new FoundException(newConfig);
-							if (hasIsolatedCells(newConfig)) {
-								n.invalid++;
-								continue;
-							}
-							
-							n.addChild(new Node(n, newConfig));
-						}
-					}
-				}
-			}
+	/**
+	 * The strategy for BFS-order traversals of the possible 
+	 * configurations tree.
+	 * @author david
+	 *
+	 */
+	class BFSStrategy implements Strategy {
+		BFSSolver caller;
+		BFSStrategy(BFSSolver solver) {
+			this.caller = solver;
 		}
-	}
 
-	class Node {
-		public long valid, invalid;
-		public List<Node> children;
-		public Configuration config;
-		public Node parent;
-		public Node(Node parent) {
-			valid = 0;
-			invalid = 0;
-			this.children = new ArrayList<Node>();
-			this.parent = parent;
+		@Override
+		public void preTraversal(Configuration c) throws EndException {
+			// do nothing
 		}
-		
-		public Node(Node parent, Configuration c) {
-			valid = 0;
-			invalid = 0;
-			this.children = new ArrayList<Node>();
-			this.config = c;
-			this.parent = parent;
+
+		@Override
+		public Shape determineShape(Configuration c) {
+			return (Shape) c.getUnusedShapes().toArray()[rng.nextInt(c.getUnusedShapes().size())];
 		}
-		
-		public void addChild(Node n) {
-			this.children.add(n);
+
+		@Override
+		public void placeFailure(Node n) {
+			((BFSNode) n).invalid++;
+		}
+
+		@Override
+		public void isolatedFailure(Node n) {
+			((BFSNode) n).invalid++;
+		}
+
+		@Override
+		public void succeed(Configuration newConfig, Node n) throws FoundException, EndException {
+			((BFSNode) n).addChild(new BFSNode(n, newConfig));
 		}
 	}
 	
-	class FoundException extends Exception {
+	
+	private void descend(Node n) throws FoundException {
+		Configuration currentConfig = n.config;
+		
+		Shape[] set = new Shape[currentConfig.getUnusedShapes().size()];
+		set = currentConfig.getUnusedShapes().toArray(set);
+	    Shape[] subset = new Shape[this.puzzle.getShapeCount() - this.puzzle.getMinShapeFit()];
+	    if (n.parent == null) {
+	    	topLevelRecurse(set, subset, 0, 0, currentConfig);
+	    } else {
+	    	try {
+				this.traverse(n, strategy);
+			} catch (EndException e) {
+				// Can safely ignore, will not generate under DFSStrategy
+			}
+	    }
+	}
+	
+	/**
+	 * Recursively finds all n choose k subsets of the set of unused shapes
+	 * and removes those shapes from the set of unused shapes before running
+	 * the usual BFS traversal of the children nodes. Here n is the number of
+	 * "extra" shapes that are left unused when the minimum number of shapes 
+	 * have been used to solve the puzzle.
+	 * @param set The original set of shapes.
+	 * @param subset The current working subset of shapes.
+	 * @param subsetSize The size of the working subset.
+	 * @param nextIndex The next index in the original set.
+	 * @param rootConfig The root configuration with the original set of shapes.
+	 * @throws FoundException Thrown when a solution is found.
+	 */
+	private void topLevelRecurse(Shape[] set, Shape[] subset, int subsetSize, int nextIndex, 
+			Configuration rootConfig) throws FoundException {
+	    if (subsetSize == subset.length) {
+	    	Configuration currentConfig = new Configuration(rootConfig);
+	    	BFSNode child = new BFSNode(root, currentConfig);
+	    	root.addChild(child);
+	    	for (int i = 0; i < subset.length; i++) {
+	    		currentConfig.removeShape(subset[i]);
+	    	}
+			try {
+				this.traverse(child, strategy);
+			} catch (EndException e) {
+				// Can safely ignore, will not generate under BFSStrategy
+			}
+	    } else {
+	        for (int j = nextIndex; j < set.length; j++) {
+	            subset[subsetSize] = set[j];
+	            topLevelRecurse(set, subset, subsetSize + 1, j + 1, rootConfig);
+	        }
+	    }
+	}
 
-		/**
-		 * 
-		 */
-		private static final long serialVersionUID = 5453975780718671130L;
-		public Configuration config;
-		public FoundException(Configuration config) {
-			this.config = config;
+	class BFSNode extends Node {
+		public long valid, invalid;
+		public List<BFSNode> children;
+		public BFSNode(Node parent) {
+			super(parent);
+			valid = 0;
+			invalid = 0;
+			this.children = new ArrayList<BFSNode>();
+		}
+		
+		public BFSNode(Node parent, Configuration c) {
+			super(parent, c);
+			valid = 0;
+			invalid = 0;
+			this.children = new ArrayList<BFSNode>();
+		}
+		
+		public void addChild(BFSNode n) {
+			this.children.add(n);
 		}
 	}
 }

@@ -80,12 +80,12 @@ public class ThreadedDFSSolver extends AbstractSolver {
 		}
 
 		@Override
-		public void placeFailure() {
+		public void placeFailure(Node n) {
 			// do nothing
 		}
 
 		@Override
-		public void isolatedFailure() {
+		public void isolatedFailure(Node n) {
 			// do nothing
 		}
 
@@ -237,12 +237,12 @@ public class ThreadedDFSSolver extends AbstractSolver {
 			}
 
 			@Override
-			public void placeFailure() {
+			public void placeFailure(Node n) {
 				rejectCount++;
 			}
 
 			@Override
-			public void isolatedFailure() {
+			public void isolatedFailure(Node n) {
 				rejectCount++;
 			}
 

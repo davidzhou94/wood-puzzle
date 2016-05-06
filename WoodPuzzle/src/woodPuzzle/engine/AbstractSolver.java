@@ -98,7 +98,7 @@ public abstract class AbstractSolver {
 	 * @throws EndException Throw when the strategy terminates the travesal 
 	 * before a solution is found.
 	 */
-	protected void traverse(Node n, Strategy ts) throws FoundException, EndException {
+	protected final void traverse(Node n, Strategy ts) throws FoundException, EndException {
 		Configuration currentConfig = n.config;
 
 		ts.preTraversal(currentConfig);
@@ -125,12 +125,12 @@ public abstract class AbstractSolver {
 						}
 						
 						if (!newConfig.placeShape(s, placement)) {
-							ts.placeFailure();
+							ts.placeFailure(n);
 							continue;
 						}
 						if (newConfig.getUnusedShapes().isEmpty()) throw new FoundException(newConfig);
 						if (hasIsolatedCells(newConfig)) {
-							ts.isolatedFailure();
+							ts.isolatedFailure(n);
 							continue;
 						}
 						
@@ -247,8 +247,8 @@ public abstract class AbstractSolver {
 interface Strategy {
 	void preTraversal(Configuration c) throws EndException;
 	Shape determineShape(Configuration c);
-	void placeFailure();
-	void isolatedFailure();
+	void placeFailure(Node n);
+	void isolatedFailure(Node n);
 	void succeed(Configuration newConfig, Node n) throws FoundException, EndException;
 }
 

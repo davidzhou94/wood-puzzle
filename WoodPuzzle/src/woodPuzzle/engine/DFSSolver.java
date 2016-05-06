@@ -60,12 +60,12 @@ public class DFSSolver extends AbstractSolver {
 		}
 
 		@Override
-		public void placeFailure() {
+		public void placeFailure(Node n) {
 			rejects++;
 		}
 
 		@Override
-		public void isolatedFailure() {
+		public void isolatedFailure(Node n) {
 			rejects++;
 		}
 
@@ -80,22 +80,20 @@ public class DFSSolver extends AbstractSolver {
 	}
 	
 	private void descend(Node n) throws FoundException {
-		Configuration currentConfig = root.config;
+		Configuration currentConfig = n.config;
 		
 		Shape[] set = new Shape[currentConfig.getUnusedShapes().size()];
 		set = currentConfig.getUnusedShapes().toArray(set);
 	    Shape[] subset = new Shape[this.puzzle.getShapeCount() - this.puzzle.getMinShapeFit()];
-	    if (root.parent == null) {
+	    if (n.parent == null) {
 	    	topLevelRecurse(set, subset, 0, 0, currentConfig);
 	    } else {
 	    	try {
-				this.traverse(root, strategy);
+				this.traverse(n, strategy);
 			} catch (EndException e) {
 				// Can safely ignore, will not generate under DFSStrategy
 			}
 	    }
-	    
-	    return;
 	}
 	
 	/**
