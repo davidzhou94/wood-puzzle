@@ -65,7 +65,7 @@ public class XMLReader {
 		Element rootElem = doc.getDocumentElement(); 
 		rootElem.normalize();
 		
-		int width, height, length, shapeSide, shapeCount, minShapeSize, maxShapeSize, minShapeFit;
+		int width, height, length, shapeSide, shapeCount, minShapeSize, maxShapeSize, minShapesToFill;
 		width = Integer.parseInt(rootElem.getAttribute("width"));
 		height = Integer.parseInt(rootElem.getAttribute("height"));
 		length = Integer.parseInt(rootElem.getAttribute("length"));
@@ -74,10 +74,10 @@ public class XMLReader {
 		shapeCount = Integer.parseInt(rootElem.getAttribute("shapeCount"));
 		minShapeSize = Integer.parseInt(rootElem.getAttribute("minShapeSize"));
 		maxShapeSize = Integer.parseInt(rootElem.getAttribute("maxShapeSize"));
-		minShapeFit = Integer.parseInt(rootElem.getAttribute("minShapeFit"));
+		minShapesToFill = Integer.parseInt(rootElem.getAttribute("minShapesToFill"));
 			
 		puzzle = new Puzzle(width, height, length, shapeSide, 
-				shapeCount, minShapeSize, maxShapeSize, minShapeFit);
+				shapeCount, minShapeSize, maxShapeSize, minShapesToFill);
 		NodeList nList = doc.getElementsByTagName("Shape");
 		for (int i = 0; i < nList.getLength(); i++) {
 			puzzle.addShape(parseShape(shapeSide, nList.item(i)));

@@ -7,6 +7,8 @@ import javax.xml.parsers.ParserConfigurationException;
 import org.xml.sax.SAXException;
 
 import woodpuzzle.model.Puzzle;
+import woodpuzzle.solver.AbstractSolver;
+import woodpuzzle.solver.HaltingDFSSolver;
 
 public class Engine {
 	private static Engine instance;
@@ -29,9 +31,14 @@ public class Engine {
 	}
 	
 	private void solve() {
-		this.solver.solve();
+		this.solver.solvePuzzle();
 	}
 	
+	/**
+	 * Run using:
+	 * $ java -Xmx8g -cp F:\repos\wood-puzzle\WoodPuzzle\bin\ woodPuzzle.engine.Engine .\assets\default.xml
+	 * @param args first argument is the path to the puzzle definition
+	 */
 	public static void main(String[] args) {
 		Engine e = Engine.getInstance();
 
@@ -48,7 +55,7 @@ public class Engine {
 		// Probably don't use BFSSolver, it is very slow even on the small 3x3 toy example
 		//e.setSolver(new BFSSolver(e.puzzle));
 		//e.setSolver(new DFSSolver(e.puzzle));
-		e.setSolver(new ThreadedDFSSolver(e.puzzle));
+		e.setSolver(new HaltingDFSSolver(e.puzzle));
 		e.solve();
 	}
 }

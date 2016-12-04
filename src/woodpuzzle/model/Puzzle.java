@@ -14,7 +14,7 @@ public class Puzzle {
 	protected final int shapeCount;
 	protected final int minShapeSize;
 	protected final int maxShapeSize;
-	protected final int minShapeFit;
+	protected final int minShapesToFill;
 	protected Set<Shape> shapes;
 	
 	public int getWidth() {
@@ -45,8 +45,8 @@ public class Puzzle {
 		return maxShapeSize;
 	}
 	
-	public int getMinShapeFit() {
-		return minShapeFit;
+	public int getMinShapesFill() {
+		return minShapesToFill;
 	}
 	
 	public Set<Shape> getShapes() {
@@ -63,7 +63,7 @@ public class Puzzle {
 	 *        the largest shape
 	 */
 	public Puzzle(int width, int height, int length, int shapeSide,
-			int shapeCount, int minShapeSize, int maxShapeSize, int minShapeFit) {
+			int shapeCount, int minShapeSize, int maxShapeSize, int minShapesToFill) {
 		this.width = width;
 		this.height = height;
 		this.length = length;
@@ -72,7 +72,7 @@ public class Puzzle {
 		this.shapeCount = shapeCount;
 		this.minShapeSize = minShapeSize;
 		this.maxShapeSize = maxShapeSize;
-		this.minShapeFit = minShapeFit;
+		this.minShapesToFill = minShapesToFill;
 		this.shapes = new HashSet<Shape>();
 	}
 	
