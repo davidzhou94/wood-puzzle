@@ -3,6 +3,8 @@ package woodPuzzle.engine;
 import java.util.PriorityQueue;
 import java.util.Queue;
 import java.util.Random;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.Comparator;
 
 import woodPuzzle.model.Configuration;
@@ -25,8 +27,11 @@ import woodPuzzle.model.Shape;
 public class ThreadedDFSSolver extends AbstractSolver {
 
 	static final int REJECT_LIMIT = 1000000;
-	private ThreadedDFSNode root;
-	private Random rng;
+	static final int SOLVER_PARALLELISM = 24;
+	private final ThreadedDFSNode root = new ThreadedDFSNode(null);
+	private final Random rng = new Random();
+	private final ExecutorService executor = Executors.newFixedThreadPool(SOLVER_PARALLELISM);
+	private Configuration solution = null;
 
 	/**
 	 * Creates a ThreadedDFSSolver.
@@ -34,8 +39,6 @@ public class ThreadedDFSSolver extends AbstractSolver {
 	 */
 	public ThreadedDFSSolver(Puzzle p) {
 		super(p);
-		this.root = new ThreadedDFSNode(null);
-		this.rng = new Random();
 	}
 
 	/**
@@ -46,70 +49,24 @@ public class ThreadedDFSSolver extends AbstractSolver {
 	public Configuration findSolution() {
 		this.root.config = new Configuration(this.puzzle);
 		try {
-			this.descend(root);
-		} catch (FoundException ex) {
-			return ex.config;
+			this.traverseTopLevel(root);
+		} catch (Exception e) {
+			System.out.println("Exception encountered while traversing top level: ");
+			e.printStackTrace();
+			return null;
 		}
-		return null;
-	}
-	
-	/**
-	 * The strategy for "top-level" traversals of a node configuration 
-	 * tree. This is the traversal that takes samples for all children
-	 * of a specific node and recursing based on the child node with
-	 * the deepest and most leaf nodes found in the sampling phase.
-	 * @author david
-	 *
-	 */
-	class ThreadedDFSStrategy implements Strategy {
-		Queue<ThreadedDFSNode> children;
-		ThreadedDFSSolver caller;
-		ThreadedDFSStrategy(ThreadedDFSSolver caller, Queue<ThreadedDFSNode> children) {
-			this.caller = caller;
-			this.children = children;
-		}
-
-		@Override
-		public void preTraversal(Configuration c) throws EndException {
-			// do nothing
-		}
-
-		@Override
-		public Shape determineShape(Configuration c) {
-			return (Shape) c.getUnusedShapes().toArray()[rng.nextInt(c.getUnusedShapes().size())];
-		}
-
-		@Override
-		public void placeFailure(Node n) {
-			// do nothing
-		}
-
-		@Override
-		public void isolatedFailure(Node n) {
-			// do nothing
-		}
-
-		@Override
-		public void succeed(Configuration newConfig, Node n) throws FoundException, EndException {
-			ThreadedDFSNode child = new ThreadedDFSNode(n, newConfig);
-			DescendThread dt = new DescendThread(child, puzzle, caller);
-			Thread t = new Thread(dt);
-			t.start();
+		
+		while(solution == null) {
 			try {
-				// doing one thread at a time but this could be more.
-				t.join();
+				Thread.sleep(1000L);
 			} catch (InterruptedException e) {
-				e.printStackTrace();
-			}
-			if (dt.solution == null) {
-				child.recordLevel = dt.recordLevel;
-				child.recordLevelCount = dt.recordLevelCount;
-				child.rejectCount = dt.rejectCount;
-				children.add(child);
-			} else {
-				throw new FoundException(dt.solution);
+				System.out.println("Interrupted while waiting for a solution...");
 			}
 		}
+		
+		executor.shutdownNow();
+		
+		return solution;
 	}
 	
 	/**
@@ -117,9 +74,9 @@ public class ThreadedDFSSolver extends AbstractSolver {
 	 * samples via DFS the sub-tree formed by each valid child of the
 	 * given root node.
 	 * @param root The root node to descend from.
-	 * @throws FoundException Thrown when the solution is found.
+	 * @throws Exception 
 	 */
-	private void descend(ThreadedDFSNode root) throws FoundException {
+	private void traverseTopLevel(ThreadedDFSNode root) throws Exception {
 		Queue<ThreadedDFSNode> children = new PriorityQueue<ThreadedDFSNode>(10, new Comparator<ThreadedDFSNode>() {
 			public int compare(ThreadedDFSNode n1, ThreadedDFSNode n2) {
 				if (n1.recordLevel != n2.recordLevel) return n1.recordLevel - n2.recordLevel;
@@ -133,22 +90,13 @@ public class ThreadedDFSSolver extends AbstractSolver {
 		Shape[] set = new Shape[rootConfig.getUnusedShapes().size()];
 		set = rootConfig.getUnusedShapes().toArray(set);
 	    Shape[] subset = new Shape[this.puzzle.getShapeCount() - this.puzzle.getMinShapeFit()];
-	    if (root.parent == null) {
-	    	topLevelRecurse(set, subset, 0, 0, rootConfig, children);
-	    } else {
-	    	try {
-				this.traverse(root, new ThreadedDFSStrategy(this, children));
-			} catch (EndException e) {
-				// Can safely ignore, will not generate under ThreadedDFSStrategy
-			}
+	    if (root.parent != null) {
+	    	throw new Exception("Not at the root configuration in top level traversal");
 	    }
 	    
-		System.out.println("Top level complete");
-		while(!children.isEmpty()) {
-			ThreadedDFSNode child = children.poll();
-			System.out.println("Choosing child with record level " + child.recordLevel + " with " + child.recordLevelCount + " at record level, rejected " + child.rejectCount);
-			this.descend(child);
-		}
+	    topLevelRecurse(set, subset, 0, 0, rootConfig, children);
+	    
+		System.out.println("Top level traversal complete");
 	}
 	
 	/**
@@ -156,7 +104,9 @@ public class ThreadedDFSSolver extends AbstractSolver {
 	 * and removes those shapes from the set of unused shapes before running
 	 * the usual sampling traversal of the children nodes. Here n is the 
 	 * number of "extra" shapes that are left unused when the minimum number
-	 * of shapes have been used to solve the puzzle.
+	 * of shapes have been used to solve the puzzle. In practice, since we know
+	 * exactly one shape must be excluded from any solution to the prime 
+	 * puzzle, this function will not recurse for the prime puzzle.
 	 * @param set The original set of shapes.
 	 * @param subset The current working subset of shapes.
 	 * @param subsetSize The size of the working subset.
@@ -173,7 +123,7 @@ public class ThreadedDFSSolver extends AbstractSolver {
 	    		currentConfig.removeShape(subset[i]);
 	    	}
 			try {
-				this.traverse(new Node(root, currentConfig), new ThreadedDFSStrategy(this, children));
+				this.traverse(new Node(root, currentConfig), new TopLevelThreadedDFSStrategy(this));
 			} catch (EndException e) {
 				// Can safely ignore, will not generate under ThreadedDFSStrategy
 			}
@@ -183,6 +133,53 @@ public class ThreadedDFSSolver extends AbstractSolver {
 	            topLevelRecurse(set, subset, subsetSize + 1, j + 1, rootConfig, children);
 	        }
 	    }
+	}
+	
+	private void reportSolution(Configuration c) {
+		this.solution = c;
+	}
+	
+	/**
+	 * The strategy for "top-level" traversals of a node configuration 
+	 * tree. This is the traversal that takes samples for all children
+	 * of a specific node and recursing based on the child node with
+	 * the deepest and most leaf nodes found in the sampling phase.
+	 * @author david
+	 *
+	 */
+	class TopLevelThreadedDFSStrategy implements Strategy {
+		ThreadedDFSSolver caller;
+		TopLevelThreadedDFSStrategy(ThreadedDFSSolver caller) {
+			this.caller = caller;
+		}
+
+		@Override
+		public void preTraversal(Configuration c) throws EndException {
+			// do nothing
+		}
+
+		@Override
+		public Shape determineShape(Configuration c) {
+			return (Shape) c.getUnusedShapes().toArray()[rng.nextInt(c.getUnusedShapes().size())];
+		}
+
+		@Override
+		public void placementFailedGeometry(Node n) {
+			// do nothing
+		}
+
+		@Override
+		public void placementFailedDeadCells(Node n) {
+			// do nothing
+		}
+
+		@Override
+		public void placementSucceeded(Configuration newConfig, Node n) throws FoundException, EndException {
+			ThreadedDFSNode child = new ThreadedDFSNode(n, newConfig);
+			DescendThread dt = new DescendThread(child, puzzle, caller);
+			
+			caller.executor.submit(dt);
+		}
 	}
 
 	/**
@@ -199,7 +196,6 @@ public class ThreadedDFSSolver extends AbstractSolver {
 		
 		ThreadedDFSNode root;
 		Puzzle puzzle;
-		Configuration solution;
 		Random rng;
 		ThreadedDFSSolver caller;
 		
@@ -208,6 +204,25 @@ public class ThreadedDFSSolver extends AbstractSolver {
 			this.puzzle = p;
 			this.caller = caller;
 			rng = new Random();
+		}
+		
+		private void descend(ThreadedDFSNode n) throws FoundException, EndException {
+			DescendThreadStrategy s = new DescendThreadStrategy(caller);
+			caller.traverse(n, s);
+			this.recordLevel = s.recordLevel;
+			this.recordLevelCount = s.recordLevelCount;
+			this.rejectCount = s.rejectCount;
+		}
+
+		@Override
+		public void run() {
+			try {
+				this.descend(root);
+			} catch (FoundException e) {
+				caller.reportSolution(e.config);
+			} catch (EndException e) {
+				// do nothing
+			}
 		}
 		
 		class DescendThreadStrategy implements Strategy {
@@ -237,41 +252,21 @@ public class ThreadedDFSSolver extends AbstractSolver {
 			}
 
 			@Override
-			public void placeFailure(Node n) {
+			public void placementFailedGeometry(Node n) {
 				rejectCount++;
 			}
 
 			@Override
-			public void isolatedFailure(Node n) {
+			public void placementFailedDeadCells(Node n) {
 				rejectCount++;
 			}
 
 			@Override
-			public void succeed(Configuration newConfig, Node n) throws FoundException, EndException {
+			public void placementSucceeded(Configuration newConfig, Node n) throws FoundException, EndException {
 				caller.traverse(new ThreadedDFSNode(n, newConfig), this);
 			}
 			
 		}
-		
-		private void descend(ThreadedDFSNode n) throws FoundException, EndException {
-			DescendThreadStrategy s = new DescendThreadStrategy(caller);
-			caller.traverse(n, s);
-			this.recordLevel = s.recordLevel;
-			this.recordLevelCount = s.recordLevelCount;
-			this.rejectCount = s.rejectCount;
-		}
-
-		@Override
-		public void run() {
-			try {
-				this.descend(root);
-			} catch (FoundException e) {
-				this.solution = e.config;
-			} catch (EndException e) {
-				this.solution = null;
-			}
-		}
-		
 	}
 
 	/**

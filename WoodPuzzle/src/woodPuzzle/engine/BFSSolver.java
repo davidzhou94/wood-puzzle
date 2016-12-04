@@ -96,17 +96,17 @@ public class BFSSolver extends AbstractSolver {
 		}
 
 		@Override
-		public void placeFailure(Node n) {
+		public void placementFailedGeometry(Node n) {
 			((BFSNode) n).invalid++;
 		}
 
 		@Override
-		public void isolatedFailure(Node n) {
+		public void placementFailedDeadCells(Node n) {
 			((BFSNode) n).invalid++;
 		}
 
 		@Override
-		public void succeed(Configuration newConfig, Node n) throws FoundException, EndException {
+		public void placementSucceeded(Configuration newConfig, Node n) throws FoundException, EndException {
 			((BFSNode) n).addChild(new BFSNode(n, newConfig));
 		}
 	}

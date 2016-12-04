@@ -125,16 +125,16 @@ public abstract class AbstractSolver {
 						}
 						
 						if (!newConfig.placeShape(s, placement)) {
-							ts.placeFailure(n);
+							ts.placementFailedGeometry(n);
 							continue;
 						}
 						if (newConfig.getUnusedShapes().isEmpty()) throw new FoundException(newConfig);
-						if (hasIsolatedCells(newConfig)) {
-							ts.isolatedFailure(n);
+						if (hasDeadCells(newConfig)) {
+							ts.placementFailedDeadCells(n);
 							continue;
 						}
 						
-						ts.succeed(newConfig, n);
+						ts.placementSucceeded(newConfig, n);
 					}
 				}
 			}
@@ -151,7 +151,7 @@ public abstract class AbstractSolver {
 	 * @param config The configuration to check.
 	 * @return true if there are isolated cells, otherwise false.
 	 */
-	public boolean hasIsolatedCells(Configuration config) {
+	public boolean hasDeadCells(Configuration config) {
 		boolean visited[] = new boolean[this.puzzle.getTotalCells()];
 		Shape cells[] = config.getCells();
 		for (int i = 0; i < this.puzzle.getTotalCells(); i++) visited[i] = false;
@@ -247,9 +247,9 @@ public abstract class AbstractSolver {
 interface Strategy {
 	void preTraversal(Configuration c) throws EndException;
 	Shape determineShape(Configuration c);
-	void placeFailure(Node n);
-	void isolatedFailure(Node n);
-	void succeed(Configuration newConfig, Node n) throws FoundException, EndException;
+	void placementFailedGeometry(Node n);
+	void placementFailedDeadCells(Node n);
+	void placementSucceeded(Configuration newConfig, Node n) throws FoundException, EndException;
 }
 
 /**

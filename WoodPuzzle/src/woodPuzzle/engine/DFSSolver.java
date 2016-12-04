@@ -60,17 +60,17 @@ public class DFSSolver extends AbstractSolver {
 		}
 
 		@Override
-		public void placeFailure(Node n) {
+		public void placementFailedGeometry(Node n) {
 			rejects++;
 		}
 
 		@Override
-		public void isolatedFailure(Node n) {
+		public void placementFailedDeadCells(Node n) {
 			rejects++;
 		}
 
 		@Override
-		public void succeed(Configuration newConfig, Node n) throws FoundException, EndException {
+		public void placementSucceeded(Configuration newConfig, Node n) throws FoundException, EndException {
 			if (newConfig.getUnusedShapes().size() < record) {
 				record = newConfig.getUnusedShapes().size();
 			}
