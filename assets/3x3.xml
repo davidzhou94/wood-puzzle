@@ -1,0 +1,31 @@
+<?xml version="1.0"?>
+<Puzzle width="3" height="2" length="3" shapeSide="3" shapeCount="5" minShapeSize="2" maxShapeSize="4" minShapeFit="5">
+	<Shape>
+		<Coordinate>0,0,0</Coordinate>
+		<Coordinate>1,0,0</Coordinate>
+		<Coordinate>1,1,0</Coordinate>
+		<Coordinate>1,0,1</Coordinate>
+	</Shape>
+	<Shape>
+		<Coordinate>0,0,0</Coordinate>
+		<Coordinate>0,0,1</Coordinate>
+		<Coordinate>0,1,1</Coordinate>
+		<Coordinate>0,0,2</Coordinate>
+	</Shape>
+	<Shape>
+		<Coordinate>0,0,0</Coordinate>
+		<Coordinate>0,0,1</Coordinate>
+		<Coordinate>0,1,0</Coordinate>
+		<Coordinate>1,1,0</Coordinate>
+	</Shape>
+	<Shape>
+		<Coordinate>0,0,0</Coordinate>
+		<Coordinate>1,0,0</Coordinate>
+	</Shape>
+	<Shape>
+		<Coordinate>0,0,0</Coordinate>
+		<Coordinate>1,0,0</Coordinate>
+		<Coordinate>1,0,1</Coordinate>
+		<Coordinate>1,0,2</Coordinate>
+	</Shape>
+</Puzzle>
