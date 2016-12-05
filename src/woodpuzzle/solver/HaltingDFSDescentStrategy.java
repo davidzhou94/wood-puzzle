@@ -6,7 +6,7 @@ import woodpuzzle.model.Configuration;
 import woodpuzzle.model.Shape;
 
 class HaltingDFSDescentStrategy implements Strategy {
-	private static final int DEAD_END_LIMIT = 1000000;
+	private static final int DEAD_END_LIMIT = 100000;
 	private long rejectedPlacementCount = 0;
 	private int minObservedShapesRemaining = Integer.MAX_VALUE;
 	private int currentShapesRemaining;

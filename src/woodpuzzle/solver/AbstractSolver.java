@@ -1,11 +1,14 @@
 package woodpuzzle.solver;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Queue;
+import java.util.Set;
 
 import woodpuzzle.model.Configuration;
 import woodpuzzle.model.Coordinate;
@@ -19,6 +22,7 @@ import woodpuzzle.model.Shape;
  */
 public abstract class AbstractSolver {
 	protected final Puzzle puzzle;
+	protected Set<Configuration> rootConfigs = null;
 	protected Strategy strategy;
 
 	/**
@@ -140,6 +144,67 @@ public abstract class AbstractSolver {
 				}
 			}
 		}
+	}
+	
+	/**
+	 * Carries out a "top-level" descent from the given root node that
+	 * samples via DFS the sub-tree formed by each valid child of the
+	 * given root node.
+	 * @param root The root node to descend from.
+	 * @throws Exception 
+	 */
+	protected Set<Configuration> traverseTopLevel(Configuration root) {
+		if (this.rootConfigs != null) {
+			return this.rootConfigs;
+		}
+		this.rootConfigs = new HashSet<Configuration>();
+		Shape[] toRemove = new Shape[this.puzzle.getShapeCount() - this.puzzle.getMinShapesFill()];
+		Shape[] allShapesArray = new Shape[this.puzzle.getShapeCount()];
+		List<Shape> allShapes = new ArrayList<Shape>(this.puzzle.getShapes());
+		Collections.shuffle(allShapes);
+	    topLevelRecurse(allShapes.toArray(allShapesArray), toRemove, 0, 0, root);
+	    System.out.println("Top level traversal complete");
+	    return this.rootConfigs;
+	}
+	
+	/**
+	 * Recursively finds all n choose k subsets of the 
+	 * set of shapes in the puzzle and removes those shapes from the set of 
+	 * unused shapes before running the halting DFS traversal of the children 
+	 * nodes. minShapeFill is the smallest number of shapes needed to complete 
+	 * the puzzle. In practice, since we know exactly one shape must be excluded 
+	 * from any solution to the prime puzzle, this function will call itself 
+	 * only once per non-recursive invocation.
+	 * @param allShapes The original set of shapes.
+	 * @param toRemove The current working subset of shapes.
+	 * @param toRemoveSize The size of the working subset.
+	 * @param nextIndex The next index in the original set.
+	 * @param rootConfig The root configuration with the original set of shapes.
+	 * @param children The children of the rootConfig node.
+	 * @throws FoundException Thrown when a solution is found.
+	 */
+	private void topLevelRecurse(Shape[] allShapes, Shape[] toRemove, int toRemoveSize, int nextIndex, 
+			Configuration root) {
+	    if (toRemoveSize == toRemove.length) {
+	    	// base case, determined shapes to remove on this iteration
+	    	Configuration newConfig = new Configuration(root);
+	    	for (int i = 0; i < toRemove.length; i++) {
+	    		newConfig.removeShape(toRemove[i]);
+	    	}
+			this.rootConfigs.add(newConfig);
+	    } else {
+	    	// recursive case
+	    	if (nextIndex == allShapes.length - 2) {
+	            Shape[] newSubset = toRemove.clone();
+	            newSubset[toRemoveSize] = allShapes[allShapes.length - 1];
+	    		topLevelRecurse(allShapes, toRemove, toRemoveSize + 1, allShapes.length, root);
+	    	}
+	        for (int j = nextIndex; j < allShapes.length; j++) {
+	            Shape[] newSubset = toRemove.clone();
+	            newSubset[toRemoveSize] = allShapes[j];
+	            topLevelRecurse(allShapes, toRemove, toRemoveSize + 1, j + 1, root);
+	        }
+	    }
 	}
 	
 	/**

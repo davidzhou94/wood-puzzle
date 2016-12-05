@@ -17,6 +17,7 @@ class HaltingDFSDescentThread implements Runnable {
 
 	@Override
 	public void run() {
+		System.out.println("Starting search");
 		try {
 			this.caller.traverse(root);
 		} catch (FoundException e) {
@@ -24,5 +25,6 @@ class HaltingDFSDescentThread implements Runnable {
 		} catch (EndException e) {
 			// do nothing, we are giving up on this search
 		}
+		System.out.println("Abandoning search");
 	}
 }
