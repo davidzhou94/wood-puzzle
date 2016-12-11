@@ -13,10 +13,10 @@ import woodpuzzle.model.Shape;
  * @author david
  *
  */
-class HaltingDFSTopLevelStrategy implements Strategy {
+class HaltingDFSTopLevelTraversal implements Strategy {
 	private final HaltingDFSSolver caller;
 	private final Random rng = new Random(new Random().nextLong());
-	HaltingDFSTopLevelStrategy(HaltingDFSSolver caller) {
+	HaltingDFSTopLevelTraversal(HaltingDFSSolver caller) {
 		this.caller = caller;
 	}
 

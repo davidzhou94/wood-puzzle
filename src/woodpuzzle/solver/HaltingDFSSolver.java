@@ -33,7 +33,7 @@ public class HaltingDFSSolver extends AbstractSolver {
 	 */
 	public HaltingDFSSolver(Puzzle p) {
 		super(p, null);
-		this.strategy = new HaltingDFSTopLevelStrategy(this);
+		this.strategy = new HaltingDFSTopLevelTraversal(this);
 	}
 
 	/**
