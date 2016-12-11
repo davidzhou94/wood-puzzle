@@ -3,6 +3,7 @@ package woodpuzzle.solver;
 import java.util.Random;
 
 import woodpuzzle.model.Configuration;
+import woodpuzzle.model.Puzzle;
 import woodpuzzle.model.Shape;
 
 /**
@@ -13,11 +14,12 @@ import woodpuzzle.model.Shape;
  * @author david
  *
  */
-class HaltingDFSTopLevelTraversal implements Strategy {
-	private final HaltingDFSSolver caller;
+class HaltingDFSTopLevelTraversal extends AbstractTraversal {
 	private final Random rng = new Random(new Random().nextLong());
-	HaltingDFSTopLevelTraversal(HaltingDFSSolver caller) {
-		this.caller = caller;
+	private final HaltingDFSSolver solver;
+	HaltingDFSTopLevelTraversal(Puzzle puzzle, HaltingDFSSolver solver) {
+		super(puzzle);
+		this.solver = solver;
 	}
 
 	@Override
@@ -43,8 +45,16 @@ class HaltingDFSTopLevelTraversal implements Strategy {
 	@Override
 	public void placementSucceeded(Configuration newConfig, ConfigurationTreeNode n) throws FoundException, EndException {
 		ConfigurationTreeNode child = new ConfigurationTreeNode(n, newConfig);
-		HaltingDFSDescentThread dt = new HaltingDFSDescentThread(child, caller);
-//		dt.run();
-		caller.submitThreadForExecution(dt);
+		HaltingDFSDescentTraversal traversal = new HaltingDFSDescentTraversal(n.config.getPuzzle(), this.solver);
+		try {
+			traversal.traverse(child);
+		} catch (EndException e) {
+			// do nothing
+		}
+	}
+
+	@Override
+	void postTraversal(Configuration c) throws EndException {
+		// Do nothing
 	}
 }

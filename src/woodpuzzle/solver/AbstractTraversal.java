@@ -10,7 +10,7 @@ import woodpuzzle.model.Puzzle;
 import woodpuzzle.model.Shape;
 
 /**
- * All solver algorithms should inherit from this class.
+ * All traversal algorithms should inherit from this class.
  * @author david
  *
  */
@@ -25,9 +25,10 @@ public abstract class AbstractTraversal {
 		this.puzzle = puzzle;
 	}
 	
-	// Utility methods:
+	// Abstract methods:
 	
 	abstract void preTraversal(Configuration c) throws EndException;
+	abstract void postTraversal(Configuration c) throws EndException;
 	abstract Shape determineShape(Configuration c);
 	abstract void placementFailedGeometry(ConfigurationTreeNode n);
 	abstract void placementFailedDeadCells(ConfigurationTreeNode n);
@@ -86,6 +87,8 @@ public abstract class AbstractTraversal {
 				}
 			}
 		}
+		
+		this.postTraversal(currentConfig);
 	}
 	
 	/**
@@ -98,7 +101,7 @@ public abstract class AbstractTraversal {
 	 * @param config The configuration to check.
 	 * @return true if there are isolated cells, otherwise false.
 	 */
-	public boolean hasDeadCells(Configuration config) {
+	private boolean hasDeadCells(Configuration config) {
 		boolean visited[] = new boolean[this.puzzle.getTotalCells()];
 		Shape cells[] = config.getCells();
 		for (int i = 0; i < this.puzzle.getTotalCells(); i++) visited[i] = false;

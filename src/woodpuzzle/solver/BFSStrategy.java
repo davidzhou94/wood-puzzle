@@ -3,6 +3,7 @@ package woodpuzzle.solver;
 import java.util.Random;
 
 import woodpuzzle.model.Configuration;
+import woodpuzzle.model.Puzzle;
 import woodpuzzle.model.Shape;
 
 /**
@@ -11,8 +12,12 @@ import woodpuzzle.model.Shape;
  * @author david
  *
  */
-class BFSStrategy implements Strategy {
+class BFSStrategy extends AbstractTraversal {
 	private final Random rng = new Random();
+	
+	protected BFSStrategy(Puzzle puzzle) {
+		super(puzzle);
+	}
 
 	@Override
 	public void preTraversal(Configuration c) throws EndException {
@@ -37,5 +42,10 @@ class BFSStrategy implements Strategy {
 	@Override
 	public void placementSucceeded(Configuration newConfig, ConfigurationTreeNode n) throws FoundException, EndException {
 		((BFSNode) n).addChild(new BFSNode(n, newConfig));
+	}
+
+	@Override
+	void postTraversal(Configuration c) throws EndException {
+		// Do nothing
 	}
 }

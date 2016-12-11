@@ -3,6 +3,7 @@ package woodpuzzle.solver;
 import java.util.Random;
 
 import woodpuzzle.model.Configuration;
+import woodpuzzle.model.Puzzle;
 import woodpuzzle.model.Shape;
 
 /**
@@ -11,20 +12,22 @@ import woodpuzzle.model.Shape;
  * @author david
  *
  */
-class DFSStrategy implements Strategy {
-	private final DFSSolver caller;
+class DFSStrategy extends AbstractTraversal {
+	private long count = 0;
+	private long rejects = 0;
+	private int record = Integer.MAX_VALUE;
 	private final Random rng = new Random();
 	
-	DFSStrategy(DFSSolver caller) {
-		this.caller = caller;
+	DFSStrategy(Puzzle puzzle) {
+		super(puzzle);
 	}
 
 	@Override
 	public void preTraversal(Configuration c) throws EndException {
-		caller.count++;
-		if (c.getUnusedShapes().size() < caller.record) caller.record = c.getUnusedShapes().size();
-		if (caller.count % 1000 == 0) {
-			System.out.print("\rConfig #" + caller.count + " has " + c.getUnusedShapes().size() + " unused shapes, after " + caller.rejects + " dead ends, the current best record is " + caller.record);
+		this.count++;
+		if (c.getUnusedShapes().size() < this.record) this.record = c.getUnusedShapes().size();
+		if (this.count % 1000 == 0) {
+			System.out.print("\rConfig #" + this.count + " has " + c.getUnusedShapes().size() + " unused shapes, after " + this.rejects + " dead ends, the current best record is " + this.record);
 		}
 	}
 
@@ -35,20 +38,25 @@ class DFSStrategy implements Strategy {
 
 	@Override
 	public void placementFailedGeometry(ConfigurationTreeNode n) {
-		caller.rejects++;
+		this.rejects++;
 	}
 
 	@Override
 	public void placementFailedDeadCells(ConfigurationTreeNode n) {
-		caller.rejects++;
+		this.rejects++;
 	}
 
 	@Override
 	public void placementSucceeded(Configuration newConfig, ConfigurationTreeNode n) throws FoundException, EndException {
-		if (newConfig.getUnusedShapes().size() < caller.record) {
-			caller.record = newConfig.getUnusedShapes().size();
+		if (newConfig.getUnusedShapes().size() < this.record) {
+			this.record = newConfig.getUnusedShapes().size();
 		}
 		ConfigurationTreeNode child = new ConfigurationTreeNode(n, newConfig);
-		caller.traverse(child);
+		this.traverse(child);
+	}
+
+	@Override
+	void postTraversal(Configuration c) throws EndException {
+		// Do nothing
 	}
 }

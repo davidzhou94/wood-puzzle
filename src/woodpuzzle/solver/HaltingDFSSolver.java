@@ -1,9 +1,5 @@
 package woodpuzzle.solver;
 
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -21,19 +17,17 @@ import woodpuzzle.model.Puzzle;
  *
  */
 public class HaltingDFSSolver extends AbstractSolver {
-	private static final int SOLVER_PARALLELISM = 8;
-	private final ExecutorService executor = Executors.newFixedThreadPool(SOLVER_PARALLELISM);
+	private ExecutorService executor;
 	private Configuration solution = null;
-	private int startedThreads = 0;
-	private int abandonedThreads = 0;
+	private int recordLevel = Integer.MAX_VALUE;
+	private int abandonedAttempts = 0;
 
 	/**
 	 * Creates a HaltingDFSSolver.
 	 * @param p The puzzle to solve.
 	 */
 	public HaltingDFSSolver(Puzzle p) {
-		super(p, null);
-		this.strategy = new HaltingDFSTopLevelTraversal(this);
+		super(p);
 	}
 
 	/**
@@ -42,38 +36,27 @@ public class HaltingDFSSolver extends AbstractSolver {
 	 */
 	@Override
 	public Configuration findSolution() {
-		this.traverseTopLevel(new Configuration(this.puzzle));
-//		Configuration[] configs = new Configuration[this.rootConfigs.size()];
-//		configs = this.rootConfigs.toArray(configs);
-//		List<Set<Configuration>> configsForThreads = new ArrayList<Set<Configuration>>(4);
-//		for (int i = 0; i < SOLVER_PARALLELISM; i++) {
-//			configsForThreads.add(new HashSet<Configuration>());
-//		}
-//		for (int i = 0; i < configs.length; i++) {
-//			configsForThreads.get(i % SOLVER_PARALLELISM).add(configs[i]);
-//		}
-//		for (int i = 0; i < SOLVER_PARALLELISM; i++) {
-//			final Set<Configuration> configsForThread = configsForThreads.get(i);
-//			executor.submit(() -> {
-//				for (Configuration c : configsForThread) {
-//					try {
-//						this.traverse(new ConfigurationTreeNode(null, c));
-//					} catch (FoundException | EndException e) {
-//						System.out.println("Unexpected exception in HaltingDFSSolver: ");
-//						e.printStackTrace();
-//					}
-//				}
-//			});
-//		}
+		HaltingDFSTopLevelTraversal traversal = new HaltingDFSTopLevelTraversal(this.puzzle, this);
+		this.generateRootConfigs(new Configuration(this.puzzle));
+		
+		System.out.printf("Creating threadpool with %d threads... ", this.rootConfigs.size());
+		this.executor = Executors.newFixedThreadPool(this.rootConfigs.size());
+		System.out.println("Succeeded");
 		
 		for (Configuration c : this.rootConfigs) {
-			try {
-				this.traverse(new ConfigurationTreeNode(null, c));
-			} catch (FoundException | EndException e) {
-				System.out.println("Unexpected exception in HaltingDFSSolver: ");
-				e.printStackTrace();
-			}
+			executor.submit(() -> {
+				try {
+					traversal.traverse(new ConfigurationTreeNode(null, c));
+				} catch (FoundException e) {
+					this.reportSolution(e.config);
+				} catch (EndException e) {
+					// do nothing, should not see this exception here 
+					// under HaltingDFS
+				}
+			});
 		}
+		
+		System.out.println("Finished traversing top level of configurations, waiting on solution.");
 		
 		while(solution == null) {
 			try {
@@ -92,17 +75,15 @@ public class HaltingDFSSolver extends AbstractSolver {
 		this.solution = c;
 	}
 	
+	synchronized void reportAbandonedTraversal(int recordLevel) {
+		if (recordLevel < this.recordLevel) {
+			this.recordLevel = recordLevel;
+		}
+		abandonedAttempts++;
+		System.out.printf("Minimum shapes remaining: %d, %d attempts abandoned\r", this.recordLevel, this.abandonedAttempts);
+	}
+	
 	void submitThreadForExecution(Runnable t) {
 		this.executor.submit(t);
-	}
-
-	void notifyThreadStart() {
-		this.startedThreads++;
-		System.out.printf("Started %d threads, %d threads abandoned\r", this.startedThreads, this.abandonedThreads);
-	}
-
-	void notifyThreadEnd() {
-		this.abandonedThreads++;
-		System.out.printf("Started %d threads, %d threads abandoned\r", this.startedThreads, this.abandonedThreads);
 	}
 }

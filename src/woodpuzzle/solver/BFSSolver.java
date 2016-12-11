@@ -11,16 +11,18 @@ public class BFSSolver extends AbstractSolver {
 	private final BFSNode root;
 
 	public BFSSolver(Puzzle p) {
-		super(p, new BFSStrategy());
+		super(p);
 		this.root = new BFSNode(null);
 	}
 
 	@Override
 	public Configuration findSolution() {
+		BFSStrategy traversal = new BFSStrategy(this.puzzle);
+		
 		this.root.config = new Configuration(this.puzzle);
 		try {
 			BFSNode n = root;
-			this.traverseTopLevel(this.root.config);
+			this.generateRootConfigs(this.root.config);
 			for (Configuration c : this.rootConfigs) {
 				n.addChild(new BFSNode(n, c));
 			}
@@ -29,7 +31,7 @@ public class BFSSolver extends AbstractSolver {
 				for (BFSNode c : n.children) {
 					if (c.children.isEmpty()) {
 				    	try {
-							this.traverse(n);
+				    		traversal.traverse(n);
 						} catch (EndException e) {
 							System.out.println("Unexpected exception in BFSSolver: ");
 							e.printStackTrace();

@@ -8,13 +8,17 @@ import woodpuzzle.model.Shape;
 
 class HaltingDFSDescentTraversal extends AbstractTraversal {
 	private static final int DEAD_END_LIMIT = 1000000;
+	
 	private long deadEndCount = 0;
 	private int minObservedShapesRemaining = Integer.MAX_VALUE;
 	private int currentShapesRemaining;
-	private final Random rng = new Random();
 	
-	protected HaltingDFSDescentTraversal(Puzzle puzzle) {
+	private final Random rng = new Random();
+	private final HaltingDFSSolver solver;
+	
+	protected HaltingDFSDescentTraversal(Puzzle puzzle, HaltingDFSSolver solver) {
 		super(puzzle);
+		this.solver = solver;
 	}
 	
 	@Override
@@ -23,7 +27,10 @@ class HaltingDFSDescentTraversal extends AbstractTraversal {
 		if (currentShapesRemaining < minObservedShapesRemaining) {
 			minObservedShapesRemaining = currentShapesRemaining;
 		}
-		if (deadEndCount > DEAD_END_LIMIT) throw new EndException();
+		if (deadEndCount > DEAD_END_LIMIT){
+			solver.reportAbandonedTraversal(minObservedShapesRemaining);
+			throw new EndException();
+		}
 	}
 
 	@Override
@@ -44,5 +51,10 @@ class HaltingDFSDescentTraversal extends AbstractTraversal {
 	@Override
 	public void placementSucceeded(Configuration newConfig, ConfigurationTreeNode n) throws FoundException, EndException {
 		this.traverse(new ConfigurationTreeNode(n, newConfig));
+	}
+
+	@Override
+	void postTraversal(Configuration c) throws EndException {
+		// Do nothing
 	}
 }
