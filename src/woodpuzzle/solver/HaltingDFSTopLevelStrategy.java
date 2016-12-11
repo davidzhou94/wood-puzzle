@@ -44,6 +44,7 @@ class HaltingDFSTopLevelStrategy implements Strategy {
 	public void placementSucceeded(Configuration newConfig, ConfigurationTreeNode n) throws FoundException, EndException {
 		ConfigurationTreeNode child = new ConfigurationTreeNode(n, newConfig);
 		HaltingDFSDescentThread dt = new HaltingDFSDescentThread(child, caller);
+//		dt.run();
 		caller.submitThreadForExecution(dt);
 	}
 }

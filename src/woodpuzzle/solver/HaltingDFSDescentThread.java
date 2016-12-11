@@ -9,22 +9,24 @@ package woodpuzzle.solver;
 class HaltingDFSDescentThread implements Runnable {
 	private final ConfigurationTreeNode root;
 	private final HaltingDFSSolver caller;
+	private final HaltingDFSDescentTraversal traversal;
 	
 	HaltingDFSDescentThread(ConfigurationTreeNode n, HaltingDFSSolver caller) {
 		this.root = n;
 		this.caller = caller;
+		this.traversal = new HaltingDFSDescentTraversal(n.config.getPuzzle());
 	}
 
 	@Override
 	public void run() {
-		System.out.println("Starting search");
+		caller.notifyThreadStart();
 		try {
-			this.caller.traverse(root);
+			this.traversal.traverse(root);
 		} catch (FoundException e) {
 			caller.reportSolution(e.config);
 		} catch (EndException e) {
 			// do nothing, we are giving up on this search
 		}
-		System.out.println("Abandoning search");
+		caller.notifyThreadEnd();
 	}
 }

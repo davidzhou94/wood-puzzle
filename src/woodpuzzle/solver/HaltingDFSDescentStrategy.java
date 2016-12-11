@@ -3,18 +3,18 @@ package woodpuzzle.solver;
 import java.util.Random;
 
 import woodpuzzle.model.Configuration;
+import woodpuzzle.model.Puzzle;
 import woodpuzzle.model.Shape;
 
-class HaltingDFSDescentStrategy implements Strategy {
-	private static final int DEAD_END_LIMIT = 100000;
-	private long rejectedPlacementCount = 0;
+class HaltingDFSDescentTraversal extends AbstractTraversal {
+	private static final int DEAD_END_LIMIT = 1000000;
+	private long deadEndCount = 0;
 	private int minObservedShapesRemaining = Integer.MAX_VALUE;
 	private int currentShapesRemaining;
-	private final HaltingDFSSolver caller;
 	private final Random rng = new Random();
 	
-	HaltingDFSDescentStrategy(HaltingDFSSolver caller) {
-		this.caller = caller;
+	protected HaltingDFSDescentTraversal(Puzzle puzzle) {
+		super(puzzle);
 	}
 	
 	@Override
@@ -23,26 +23,26 @@ class HaltingDFSDescentStrategy implements Strategy {
 		if (currentShapesRemaining < minObservedShapesRemaining) {
 			minObservedShapesRemaining = currentShapesRemaining;
 		}
-		if (rejectedPlacementCount > DEAD_END_LIMIT) throw new EndException();
+		if (deadEndCount > DEAD_END_LIMIT) throw new EndException();
 	}
 
 	@Override
 	public Shape determineShape(Configuration c) {
-		return (Shape) c.getUnusedShapes().toArray()[rng.nextInt(currentShapesRemaining)];
+		return (Shape) c.getUnusedShapes().toArray()[rng.nextInt(c.getUnusedShapes().size())];
 	}
 
 	@Override
 	public void placementFailedGeometry(ConfigurationTreeNode n) {
-		rejectedPlacementCount++;
+		deadEndCount++;
 	}
 
 	@Override
 	public void placementFailedDeadCells(ConfigurationTreeNode n) {
-		rejectedPlacementCount++;
+		deadEndCount++;
 	}
 
 	@Override
 	public void placementSucceeded(Configuration newConfig, ConfigurationTreeNode n) throws FoundException, EndException {
-		caller.traverse(new ConfigurationTreeNode(n, newConfig));
+		this.traverse(new ConfigurationTreeNode(n, newConfig));
 	}
 }

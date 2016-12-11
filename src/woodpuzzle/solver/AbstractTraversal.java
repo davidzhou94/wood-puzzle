@@ -1,15 +1,9 @@
 package woodpuzzle.solver;
 
 import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Map;
 import java.util.Queue;
-import java.util.Set;
-
 import woodpuzzle.model.Configuration;
 import woodpuzzle.model.Coordinate;
 import woodpuzzle.model.Puzzle;
@@ -20,76 +14,24 @@ import woodpuzzle.model.Shape;
  * @author david
  *
  */
-public abstract class AbstractSolver {
-	protected final Puzzle puzzle;
-	protected Set<Configuration> rootConfigs = null;
-	protected Strategy strategy;
-
+public abstract class AbstractTraversal {
+	private final Puzzle puzzle;
+	
 	/**
 	 * Base constructor.
 	 * @param p The puzzle to use with this solver instance.
 	 */
-	protected AbstractSolver(Puzzle puzzle, Strategy strategy) {
+	protected AbstractTraversal(Puzzle puzzle) {
 		this.puzzle = puzzle;
-		this.strategy = strategy;
-	}
-	
-	/**
-	 * Measures the variant time of the solver algorithm, attempts to find a solutions
-	 * and prints out the solution if it is found.
-	 */
-	public void solvePuzzle() {
-		long begin = System.currentTimeMillis();
-		Configuration sol = this.findSolution();
-		long elapsed = System.currentTimeMillis() - begin;
-		long second = (elapsed / 1000) % 60;
-		long minute = (elapsed / (1000 * 60)) % 60;
-		long hour = (elapsed / (1000 * 60 * 60)) % 24;
-		elapsed %= 1000;
-
-		String time = String.format("%02d:%02d:%02d:%d", hour, minute, second, elapsed);
-		System.out.println("\nTime elapsed: " + time);
-		this.printSolution(sol);
-	}
-	
-	/**
-	 * The specific implementation for finding the solution.
-	 * @return The configuration of the solution.
-	 */
-	public abstract Configuration findSolution();
-
-	/**
-	 * Prints out the configuration.
-	 * @param c The configuration to print.
-	 */
-	public void printSolution(Configuration c) {
-		if (c == null) {
-			System.out.println("\nNo solution found");
-			return;
-		}
-		System.out.println("\nSolution found:\n");
-		Shape[] cells = c.getCells();
-		Map<Shape, Character> m = new HashMap<Shape, Character>();
-		m.put(null, '0');
-		char cur = 'A';
-		for (int y = 0; y < c.getPuzzle().getHeight(); y++) {
-			for (int x = 0; x < c.getPuzzle().getWidth(); x++) {
-				for (int z = 0; z < c.getPuzzle().getLength(); z++) {
-					Shape s = cells[c.getPuzzle().hashCoordinate(x, y, z)];
-					if (!m.containsKey(s)) {
-						m.put(s, cur);
-						cur++;
-					}
-					System.out.print(m.get(s));
-					System.out.print(" ");
-				}
-				System.out.println();
-			}
-			System.out.println();
-		}
 	}
 	
 	// Utility methods:
+	
+	abstract void preTraversal(Configuration c) throws EndException;
+	abstract Shape determineShape(Configuration c);
+	abstract void placementFailedGeometry(ConfigurationTreeNode n);
+	abstract void placementFailedDeadCells(ConfigurationTreeNode n);
+	abstract void placementSucceeded(Configuration newConfig, ConfigurationTreeNode n) throws FoundException, EndException;
 	
 	/**
 	 * Traverses the potential children configurations of the configuration
@@ -106,9 +48,9 @@ public abstract class AbstractSolver {
 	protected final void traverse(ConfigurationTreeNode n) throws FoundException, EndException {
 		Configuration currentConfig = n.config;
 
-		strategy.preTraversal(currentConfig);
+		this.preTraversal(currentConfig);
 
-		Shape s = strategy.determineShape(currentConfig);
+		Shape s = this.determineShape(currentConfig);
 
 		int sideLength = s.getSideLength();
 		for(int x = 0; x < this.puzzle.getWidth() - 1; x++) {
@@ -130,84 +72,20 @@ public abstract class AbstractSolver {
 						}
 						
 						if (!newConfig.placeShape(s, placement)) {
-							strategy.placementFailedGeometry(n);
+							this.placementFailedGeometry(n);
 							continue;
 						}
 						if (newConfig.getUnusedShapes().isEmpty()) throw new FoundException(newConfig);
 						if (hasDeadCells(newConfig)) {
-							strategy.placementFailedDeadCells(n);
+							this.placementFailedDeadCells(n);
 							continue;
 						}
 						
-						strategy.placementSucceeded(newConfig, n);
+						this.placementSucceeded(newConfig, n);
 					}
 				}
 			}
 		}
-	}
-	
-	/**
-	 * Carries out a "top-level" descent from the given root node that
-	 * samples via DFS the sub-tree formed by each valid child of the
-	 * given root node.
-	 * @param root The root node to descend from.
-	 * @throws Exception 
-	 */
-	protected Set<Configuration> traverseTopLevel(Configuration root) {
-		if (this.rootConfigs != null) {
-			return this.rootConfigs;
-		}
-		this.rootConfigs = new HashSet<Configuration>();
-		Shape[] toRemove = new Shape[this.puzzle.getShapeCount() - this.puzzle.getMinShapesFill()];
-		Shape[] allShapesArray = new Shape[this.puzzle.getShapeCount()];
-		List<Shape> allShapes = new ArrayList<Shape>(this.puzzle.getShapes());
-//		Collections.shuffle(allShapes);
-	    topLevelRecurse(allShapes.toArray(allShapesArray), toRemove, 0, 0, root);
-	    System.out.println("Top level traversal complete");
-	    return this.rootConfigs;
-	}
-	
-	/**
-	 * Recursively finds all n choose k subsets of the 
-	 * set of shapes in the puzzle and removes those shapes from the set of 
-	 * unused shapes before running the halting DFS traversal of the children 
-	 * nodes. minShapeFill is the smallest number of shapes needed to complete 
-	 * the puzzle. In practice, since we know exactly one shape must be excluded 
-	 * from any solution to the prime puzzle, this function will call itself 
-	 * only once per non-recursive invocation.
-	 * @param allShapes The original set of shapes.
-	 * @param toRemove The current working subset of shapes.
-	 * @param toRemoveNextIndex The size of the working subset.
-	 * @param allShapesNextIndex The next index in the original set.
-	 * @param rootConfig The root configuration with the original set of shapes.
-	 * @param children The children of the rootConfig node.
-	 * @throws FoundException Thrown when a solution is found.
-	 */
-	private void topLevelRecurse(Shape[] allShapes, Shape[] toRemove, int toRemoveNextIndex, int allShapesNextIndex, 
-			Configuration root) {
-	    if (toRemoveNextIndex == toRemove.length) {
-	    	// base case, determined shapes to remove on this iteration
-	    	Configuration newConfig = new Configuration(root);
-	    	for (int i = 0; i < toRemove.length; i++) {
-	    		newConfig.removeShape(toRemove[i]);
-	    	}
-			this.rootConfigs.add(newConfig);
-	    } else {
-	    	// recursive case
-	    	if (allShapesNextIndex == allShapes.length - 2) {
-	    		if (toRemoveNextIndex != toRemove.length - 1) {
-	    			return;
-	    		}
-	            Shape[] newSubset = toRemove.clone();
-	            newSubset[toRemoveNextIndex] = allShapes[allShapes.length - 1];
-	    		topLevelRecurse(allShapes, toRemove, toRemove.length, allShapes.length, root);
-	    	}
-	        for (int j = allShapesNextIndex; j < allShapes.length; j++) {
-	            Shape[] newSubset = toRemove.clone();
-	            newSubset[toRemoveNextIndex] = allShapes[j];
-	            topLevelRecurse(allShapes, toRemove, toRemoveNextIndex + 1, j + 1, root);
-	        }
-	    }
 	}
 	
 	/**
