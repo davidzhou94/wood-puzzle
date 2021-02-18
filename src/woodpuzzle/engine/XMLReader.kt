@@ -37,28 +37,28 @@ object XMLReader {
      * @throws ParserConfigurationException
      */
     @JvmStatic
-	@Throws(SAXException::class, IOException::class, ParserConfigurationException::class)
+    @Throws(SAXException::class, IOException::class, ParserConfigurationException::class)
     fun buildPuzzle(filePath: String): Puzzle {
-        val fXmlFile = File(filePath)
-        val dbFactory = DocumentBuilderFactory.newInstance()
-        val dBuilder = dbFactory.newDocumentBuilder()
-        val doc = dBuilder.parse(fXmlFile)
-        val rootElem = doc.documentElement
-        rootElem.normalize()
-        val width: Int = rootElem.getAttribute("width").toInt()
-        val height: Int = rootElem.getAttribute("height").toInt()
-        val length: Int = rootElem.getAttribute("length").toInt()
-        val shapeSide: Int = rootElem.getAttribute("shapeSide").toInt()
-        val shapeCount: Int = rootElem.getAttribute("shapeCount").toInt()
-        val minShapeSize: Int = rootElem.getAttribute("minShapeSize").toInt()
-        val maxShapeSize: Int = rootElem.getAttribute("maxShapeSize").toInt()
-        val minShapesToFill: Int = rootElem.getAttribute("minShapesToFill").toInt()
-        val puzzle = Puzzle(width, height, length, shapeSide,
-                shapeCount, minShapeSize, maxShapeSize, minShapesToFill)
-        val nList = doc.getElementsByTagName("Shape")
-        for (i in 0 until nList.length) {
-            puzzle.addShape(parseShape(shapeSide, nList.item(i)))
-        }
-        return puzzle
+        val xmlFile = File(filePath)
+        val documentBuilder = DocumentBuilderFactory.newInstance().newDocumentBuilder()
+        val document = documentBuilder.parse(xmlFile)
+        val rootElement = document.documentElement
+        rootElement.normalize()
+        val shapeSide: Int = rootElement.getAttribute("shapeSide").toInt()
+        val shapeList = document.getElementsByTagName("Shape")
+        val shapes = (0 until shapeList.length)
+                .map { index -> parseShape(shapeSide, shapeList.item(index)) }
+                .toSet()
+        return Puzzle(
+                width = rootElement.getAttribute("width").toInt(),
+                height = rootElement.getAttribute("height").toInt(),
+                length = rootElement.getAttribute("length").toInt(),
+                shapeSide = shapeSide,
+                shapeCount = rootElement.getAttribute("shapeCount").toInt(),
+                minShapeSize = rootElement.getAttribute("minShapeSize").toInt(),
+                maxShapeSize = rootElement.getAttribute("maxShapeSize").toInt(),
+                minShapesFill = rootElement.getAttribute("minShapesToFill").toInt(),
+                shapes = shapes
+        )
     }
 }

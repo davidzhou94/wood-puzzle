@@ -19,7 +19,7 @@ public abstract class AbstractTraversal {
 	
 	/**
 	 * Base constructor.
-	 * @param p The puzzle to use with this solver instance.
+	 * @param puzzle The puzzle to use with this solver instance.
 	 */
 	protected AbstractTraversal(Puzzle puzzle) {
 		this.puzzle = puzzle;
@@ -41,7 +41,6 @@ public abstract class AbstractTraversal {
 	 * a solution or whether it is terminating early due to an indication
 	 * in the strategy.
 	 * @param n The parent node.
-	 * @param strategy The traversal strategy.
 	 * @throws FoundException Thrown when a solution is found.
 	 * @throws EndException Throw when the strategy terminates the traversal 
 	 * before a solution is found.
@@ -117,8 +116,8 @@ public abstract class AbstractTraversal {
 					checkNeighbours.add(new Coordinate(x, y, z));
 					while (!checkNeighbours.isEmpty()) {
 						Coordinate c = checkNeighbours.poll();
-						if (this.puzzle.isValidCoordinate(c.x + 1, c.y, c.z)) {
-							int adj = this.puzzle.hashCoordinate(c.x+1, c.y, c.z);
+						if (this.puzzle.isValidCoordinate(c.getX() + 1, c.getY(), c.getZ())) {
+							int adj = this.puzzle.hashCoordinate(c.getX()+1, c.getY(), c.getZ());
 							if (visited[adj] == false) {
 								if (cells[adj] == null) {
 									emptyCount++;
@@ -127,8 +126,8 @@ public abstract class AbstractTraversal {
 								visited[adj] = true;
 							}
 						}
-						if (this.puzzle.isValidCoordinate(c.x - 1, c.y, c.z)) {
-							int adj = this.puzzle.hashCoordinate(c.x-1, c.y, c.z);
+						if (this.puzzle.isValidCoordinate(c.getX() - 1, c.getY(), c.getZ())) {
+							int adj = this.puzzle.hashCoordinate(c.getX()-1, c.getY(), c.getZ());
 							if (visited[adj] == false) {
 								if (cells[adj] == null) {
 									emptyCount++;
@@ -137,8 +136,8 @@ public abstract class AbstractTraversal {
 								visited[adj] = true;
 							}
 						}
-						if (this.puzzle.isValidCoordinate(c.x, c.y+1, c.z)) {
-							int adj = this.puzzle.hashCoordinate(c.x, c.y+1, c.z);
+						if (this.puzzle.isValidCoordinate(c.getX(), c.getY()+1, c.getZ())) {
+							int adj = this.puzzle.hashCoordinate(c.getX(), c.getY()+1, c.getZ());
 							if (visited[adj] == false) {
 								if (cells[adj] == null) {
 									emptyCount++;
@@ -147,8 +146,8 @@ public abstract class AbstractTraversal {
 								visited[adj] = true;
 							}
 						}
-						if (this.puzzle.isValidCoordinate(c.x, c.y-1, c.z)) {
-							int adj = this.puzzle.hashCoordinate(c.x+1, c.y-1, c.z);
+						if (this.puzzle.isValidCoordinate(c.getX(), c.getY()-1, c.getZ())) {
+							int adj = this.puzzle.hashCoordinate(c.getX()+1, c.getY()-1, c.getZ());
 							if (visited[adj] == false) {
 								if (cells[adj] == null) {
 									emptyCount++;
@@ -157,8 +156,8 @@ public abstract class AbstractTraversal {
 								visited[adj] = true;
 							}
 						}
-						if (this.puzzle.isValidCoordinate(c.x, c.y, c.z+1)) {
-							int adj = this.puzzle.hashCoordinate(c.x, c.y, c.z+1);
+						if (this.puzzle.isValidCoordinate(c.getX(), c.getY(), c.getZ()+1)) {
+							int adj = this.puzzle.hashCoordinate(c.getX(), c.getY(), c.getZ()+1);
 							if (visited[adj] == false) {
 								if (cells[adj] == null) {
 									emptyCount++;
@@ -167,8 +166,8 @@ public abstract class AbstractTraversal {
 								visited[adj] = true;
 							}
 						}
-						if (this.puzzle.isValidCoordinate(c.x, c.y, c.z-1)) {
-							int adj = this.puzzle.hashCoordinate(c.x, c.y, c.z-1);
+						if (this.puzzle.isValidCoordinate(c.getX(), c.getY(), c.getZ()-1)) {
+							int adj = this.puzzle.hashCoordinate(c.getX(), c.getY(), c.getZ()-1);
 							if (visited[adj] == false) {
 								if (cells[adj] == null) {
 									emptyCount++;

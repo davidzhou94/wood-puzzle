@@ -3,7 +3,9 @@ package woodpuzzle.model.tests;
 import static org.junit.Assert.*;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -16,6 +18,7 @@ import woodpuzzle.model.Shape;
 public class ConfigurationTest {
 	Puzzle p;
 	Shape s1, s2, s3;
+	Set<Shape> shapes;
 	static final int WIDTH = 5;
 	static final int HEIGHT = 2;
 	static final int LENGTH = 5;
@@ -25,10 +28,8 @@ public class ConfigurationTest {
 	static final int MAX_SHAPE_SIZE = 5;
 	static final int MIN_SHAPE_FIT = 3;
 	@Before
-	public void setUp() throws Exception {
-		p = new Puzzle(WIDTH, HEIGHT, LENGTH, SHAPE_SIDE,
-				SHAPE_COUNT, MIN_SHAPE_SIZE, MAX_SHAPE_SIZE, MIN_SHAPE_FIT);
-		List<Coordinate> shapeCells = new ArrayList<Coordinate>();
+	public void setUp() {
+		List<Coordinate> shapeCells = new ArrayList<>();
 		shapeCells.add(new Coordinate(0, 0, 0));
 		shapeCells.add(new Coordinate(1, 0, 0));
 		shapeCells.add(new Coordinate(1, 0, 1));
@@ -49,16 +50,19 @@ public class ConfigurationTest {
 		shapeCells.add(new Coordinate(1, 1, 0));
 		shapeCells.add(new Coordinate(0, 1, 1));
 		s3 = new Shape(SHAPE_SIDE, shapeCells);
-		p.addShape(s1);
-		p.addShape(s2);
-		p.addShape(s3);
+		shapes = new HashSet<>();
+		shapes.add(s1);
+		shapes.add(s2);
+		shapes.add(s3);
+		p = new Puzzle(WIDTH, HEIGHT, LENGTH, SHAPE_SIDE,
+				SHAPE_COUNT, MIN_SHAPE_SIZE, MAX_SHAPE_SIZE, MIN_SHAPE_FIT, shapes);
 	}
 
 	@Test
 	public void test() {
 		Configuration c0 = new Configuration(p);
 		assertTrue(c0.getUnusedShapes().contains(s3));
-		List<Coordinate> position = new ArrayList<Coordinate>();
+		List<Coordinate> position = new ArrayList<>();
 		// placing s3 should succeed
 		position.add(new Coordinate(0,0,0));
 		position.add(new Coordinate(0,1,0));

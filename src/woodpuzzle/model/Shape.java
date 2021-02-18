@@ -188,7 +188,7 @@ public class Shape {
 	 * @return The hashed value.
 	 */
 	public int hashCoordinate(Coordinate c) {
-		return hashCoordinate(c.x, c.y, c.z); 
+		return hashCoordinate(c.getX(), c.getY(), c.getZ());
 	}
 	
 	/**
