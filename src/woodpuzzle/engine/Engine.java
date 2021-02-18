@@ -53,8 +53,8 @@ public class Engine {
 		}
 
 		// Probably don't use BFSSolver, it is very slow even on the small 3x3 toy example
-		//e.setSolver(new BFSSolver(e.puzzle));
-		//e.setSolver(new DFSSolver(e.puzzle));
+//		e.setSolver(new BFSSolver(e.puzzle));
+//		e.setSolver(new DFSSolver(e.puzzle));
 		e.setSolver(new HaltingDFSSolver(e.puzzle));
 		e.solve();
 	}
