@@ -4,10 +4,8 @@ import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Queue;
-import woodpuzzle.model.Configuration;
-import woodpuzzle.model.Coordinate;
-import woodpuzzle.model.Puzzle;
-import woodpuzzle.model.Shape;
+
+import woodpuzzle.model.*;
 
 /**
  * All traversal algorithms should inherit from this class.
@@ -56,8 +54,8 @@ public abstract class AbstractTraversal {
 		for(int x = 0; x < this.puzzle.getWidth() - 1; x++) {
 			for(int z = 0; z < this.puzzle.getLength() - 1; z++) {
 				List<Coordinate> placement;
-				for (int yaxis = 0; yaxis <= 3; yaxis++) {
-					for (int zaxis = 0; zaxis <= 3; zaxis++) {
+				for (YAxis yaxis: YAxis.values()) {
+					for (ZAxis zaxis: ZAxis.values()) {
 						Configuration newConfig = new Configuration(currentConfig);
 						int[] rotatedShape = s.rotateShape(yaxis, zaxis);
 						placement = new ArrayList<Coordinate>();

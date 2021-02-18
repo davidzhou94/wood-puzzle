@@ -51,24 +51,24 @@ class Configuration {
         // Check whether the reference is even an unused shape.
         // Should never be false but don't really trust myself!
         if (!unusedShapes.contains(shape)) return false
-        var lowx = Int.MAX_VALUE
-        var lowy = Int.MAX_VALUE
-        var lowz = Int.MAX_VALUE
+        var minX = Int.MAX_VALUE
+        var minY = Int.MAX_VALUE
+        var minZ = Int.MAX_VALUE
         for (coordinate in position) {
             // Check whether the coordinate is still in the bounds of the puzzle box.
             if (!puzzle.isValidCoordinate(coordinate)) return false
             // Check whether this is a collision with an existing placement in the puzzle.
             if (cells[puzzle.hashCoordinate(coordinate)] != null) return false
             // find the offset to "pull" the piece into the origin corner for later comparison.
-            lowx = min(coordinate.x, lowx)
-            lowy = min(coordinate.y, lowy)
-            lowz = min(coordinate.z, lowz)
+            minX = min(coordinate.x, minX)
+            minY = min(coordinate.y, minY)
+            minZ = min(coordinate.z, minZ)
         }
         val shapeTotal = puzzle.shapeSide * puzzle.shapeSide * puzzle.shapeSide
         val placeAttemptOnOrigin = IntArray(shapeTotal)
         for (i in 0 until shapeTotal) placeAttemptOnOrigin[i] = 0
         for (c in position) {
-            placeAttemptOnOrigin[shape.hashCoordinate(c.vectorAdd(-lowx, -lowy, -lowz))] = 1
+            placeAttemptOnOrigin[shape.hashCoordinate(c.vectorAdd(-minX, -minY, -minZ))] = 1
         }
         // Verifies the rotated shape actually matches the original shape's rotation
         // because I don't trust 2016 me.
@@ -93,9 +93,9 @@ class Configuration {
      * @return true if such a rotation exists, false otherwise.
      */
     private fun isIdenticalRotatedShape(shape1: Shape, shape2: IntArray): Boolean {
-        for (yaxis in 0..3) {
-            for (zaxis in 0..3) {
-                val rotatedCoordinates: IntArray = shape1.rotateShape(yaxis, zaxis)
+        for (yAxis in YAxis.values()) {
+            for (zAxis in ZAxis.values()) {
+                val rotatedCoordinates: IntArray = shape1.rotateShape(yAxis, zAxis)
                 if (rotatedCoordinates.contentEquals(shape2)) return true
             }
         }
