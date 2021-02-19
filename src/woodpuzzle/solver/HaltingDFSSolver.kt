@@ -2,8 +2,6 @@ package woodpuzzle.solver
 
 import woodpuzzle.model.Configuration
 import woodpuzzle.model.Puzzle
-import java.util.concurrent.ExecutorService
-import java.util.concurrent.Executors
 
 /**
  * Multi-threaded DFS traversal with a better heuristic than the DFSSolver.
@@ -12,10 +10,10 @@ import java.util.concurrent.Executors
  * If a solution is not found before the dead end limit, the thread halts
  * allowing another thread to attempt a search on a different top-level child
  * node.
- * @param p The puzzle to solve.
+ * @param puzzle The puzzle to solve.
  * @author david
  */
-class HaltingDFSSolver(p: Puzzle) : AbstractSolver(p) {
+class HaltingDFSSolver(puzzle: Puzzle) : AbstractSolver(puzzle) {
     private var solution: Configuration? = null
     private var recordLevel = Int.MAX_VALUE
     private var abandonedAttempts = 0
@@ -45,7 +43,7 @@ class HaltingDFSSolver(p: Puzzle) : AbstractSolver(p) {
                 println("Interrupted while waiting for a solution...")
             }
         }
-        traversal.shutdown()
+        traversal.stop()
         return solution
     }
 

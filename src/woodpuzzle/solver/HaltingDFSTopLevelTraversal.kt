@@ -14,33 +14,25 @@ import kotlin.random.Random
  * shape placement).
  * @author david
  */
-internal class HaltingDFSTopLevelTraversal(puzzle: Puzzle, private val solver: HaltingDFSSolver) : AbstractTraversal(puzzle) {
+class HaltingDFSTopLevelTraversal(puzzle: Puzzle, private val solver: HaltingDFSSolver) : AbstractTraversal(puzzle) {
     private val rng = Random(Random.nextLong())
     private val executor: ExecutorService = Executors.newCachedThreadPool()
 
-    @Throws(EndException::class)
-    override fun preTraversal(currentConfig: Configuration) {
-        // do nothing
-    }
+    override fun preTraversal(currentConfig: Configuration) { /* do nothing */ }
 
     override fun determineShape(currentConfig: Configuration): Shape =
         currentConfig.unusedShapes.random(rng)
 
-    override fun placementFailedGeometry(currentNode: ConfigurationTreeNode) {
-        // do nothing
-    }
+    override fun placementFailedGeometry() { /* do nothing */ }
 
-    override fun placementFailedDeadCells(currentNode: ConfigurationTreeNode) {
-        // do nothing
-    }
+    override fun placementFailedDeadCells() { /* do nothing */ }
 
-    @Throws(FoundException::class, EndException::class)
     override fun placementSucceeded(newConfig: Configuration, currentNode: ConfigurationTreeNode) {
         val child = ConfigurationTreeNode(currentNode, newConfig)
         val traversal = HaltingDFSDescentTraversal(currentNode.config.puzzle, solver)
         executor.submit {
             try {
-                println("Submitting a thread to to threadpool")
+                println("Submitting a thread to thread pool")
                 traversal.traverse(child)
             } catch (e: FoundException) {
                 solver.reportSolution(e.config)
@@ -51,7 +43,5 @@ internal class HaltingDFSTopLevelTraversal(puzzle: Puzzle, private val solver: H
         }
     }
 
-    fun shutdown() {
-        executor.shutdown()
-    }
+    fun stop() = executor.shutdown()
 }

@@ -1,25 +1,17 @@
 package woodpuzzle.solver
 
 import woodpuzzle.model.*
-import kotlin.Throws
 import java.util.*
 
 /**
  * All traversal algorithms should inherit from this class.
  * @author david
  */
-abstract class AbstractTraversal
-/**
- * Base constructor.
- * @param puzzle The puzzle to use with this solver instance.
- */ protected constructor(private val puzzle: Puzzle) {
-    // Abstract methods:
-    @Throws(EndException::class)
+abstract class AbstractTraversal(private val puzzle: Puzzle) {
     abstract fun preTraversal(currentConfig: Configuration)
     abstract fun determineShape(currentConfig: Configuration): Shape
-    abstract fun placementFailedGeometry(currentNode: ConfigurationTreeNode)
-    abstract fun placementFailedDeadCells(currentNode: ConfigurationTreeNode)
-    @Throws(FoundException::class, EndException::class)
+    abstract fun placementFailedGeometry()
+    abstract fun placementFailedDeadCells()
     abstract fun placementSucceeded(newConfig: Configuration, currentNode: ConfigurationTreeNode)
 
     /**
@@ -33,7 +25,6 @@ abstract class AbstractTraversal
      * @throws EndException Throw when the strategy terminates the traversal
      * before a solution is found.
      */
-    @Throws(FoundException::class, EndException::class)
     fun traverse(node: ConfigurationTreeNode) {
         val currentConfig = node.config
         preTraversal(currentConfig)
@@ -47,7 +38,7 @@ abstract class AbstractTraversal
                         val newConfig = Configuration(currentConfig)
                         val rotatedShape = shape.rotateShape(yAxis, zAxis)
                         var placement: List<Coordinate> = emptyList()
-                        // Unhash the coordinates
+                        // Un-hash the coordinates
                         for (x in 0 until sideLength) {
                             for (y in 0 until sideLength) {
                                 for (z in 0 until sideLength) {
@@ -58,12 +49,12 @@ abstract class AbstractTraversal
                             }
                         }
                         if (!newConfig.placeShape(shape, placement)) {
-                            placementFailedGeometry(node)
+                            placementFailedGeometry()
                             continue
                         }
                         if (newConfig.allCellsFilled()) throw FoundException(newConfig)
                         if (hasDeadCells(newConfig)) {
-                            placementFailedDeadCells(node)
+                            placementFailedDeadCells()
                             continue
                         }
                         placementSucceeded(newConfig, node)

@@ -3,6 +3,7 @@ package woodpuzzle.solver
 import woodpuzzle.model.Configuration
 import woodpuzzle.model.Puzzle
 import woodpuzzle.model.Shape
+import kotlin.math.min
 import kotlin.random.Random
 
 class HaltingDFSDescentTraversal(puzzle: Puzzle, private val solver: HaltingDFSSolver) : AbstractTraversal(puzzle) {
@@ -10,17 +11,12 @@ class HaltingDFSDescentTraversal(puzzle: Puzzle, private val solver: HaltingDFSS
         private const val DEAD_END_LIMIT = 1000000
     }
 
+    private val rng = Random(Random.nextLong())
     private var deadEndCount: Long = 0
     private var minObservedShapesRemaining = Int.MAX_VALUE
-    private var currentShapesRemaining = 0
-    private val rng = Random(Random.nextLong())
 
-    @Throws(EndException::class)
     override fun preTraversal(currentConfig: Configuration) {
-        currentShapesRemaining = currentConfig.unusedShapes.size
-        if (currentShapesRemaining < minObservedShapesRemaining) {
-            minObservedShapesRemaining = currentShapesRemaining
-        }
+        minObservedShapesRemaining = min(currentConfig.unusedShapes.size, minObservedShapesRemaining)
         if (deadEndCount > DEAD_END_LIMIT) {
             solver.reportAbandonedTraversal(minObservedShapesRemaining)
             throw EndException
@@ -30,15 +26,14 @@ class HaltingDFSDescentTraversal(puzzle: Puzzle, private val solver: HaltingDFSS
     override fun determineShape(currentConfig: Configuration): Shape =
         currentConfig.unusedShapes.random(rng)
 
-    override fun placementFailedGeometry(currentNode: ConfigurationTreeNode) {
+    override fun placementFailedGeometry() {
         deadEndCount++
     }
 
-    override fun placementFailedDeadCells(currentNode: ConfigurationTreeNode) {
+    override fun placementFailedDeadCells() {
         deadEndCount++
     }
 
-    @Throws(FoundException::class, EndException::class)
     override fun placementSucceeded(newConfig: Configuration, currentNode: ConfigurationTreeNode) {
         super.traverse(ConfigurationTreeNode(currentNode, newConfig))
     }

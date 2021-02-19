@@ -1,57 +1,49 @@
-package woodpuzzle.solver;
+package woodpuzzle.solver
 
-import java.util.Random;
+import woodpuzzle.model.Configuration
+import woodpuzzle.model.Puzzle
+import woodpuzzle.model.Shape
+import kotlin.math.min
+import kotlin.random.Random
 
-import woodpuzzle.model.Configuration;
-import woodpuzzle.model.Puzzle;
-import woodpuzzle.model.Shape;
 
 /**
- * The strategy for DFS-order traversals of the possible 
+ * The strategy for DFS-order traversals of the possible
  * configurations tree.
  * @author david
- *
  */
-class DFSStrategy extends AbstractTraversal {
-	private long count = 0;
-	private long rejects = 0;
-	private int record = Integer.MAX_VALUE;
-	private final Random rng = new Random();
-	
-	DFSStrategy(Puzzle puzzle) {
-		super(puzzle);
-	}
+class DFSTraversal(puzzle: Puzzle) : AbstractTraversal(puzzle) {
+    private val rng = Random(Random.nextLong())
+    private var count: Long = 0
+    private var deadEndCount: Long = 0
+    private var minObservedShapesRemaining = Int.MAX_VALUE
 
-	@Override
-	public void preTraversal(Configuration currentConfig) throws EndException {
-		this.count++;
-		if (currentConfig.getUnusedShapes().size() < this.record) this.record = currentConfig.getUnusedShapes().size();
-		if (this.count % 1000 == 0) {
-			System.out.print("\rConfig #" + this.count + " has " + currentConfig.getUnusedShapes().size() + " unused shapes, after " + this.rejects + " dead ends, the current best record is " + this.record);
-		}
-	}
+    override fun preTraversal(currentConfig: Configuration) {
+        count++
+        minObservedShapesRemaining = min(currentConfig.unusedShapes.size, minObservedShapesRemaining)
+        if (count % 1000 == 0L) {
+            println("Config #$count has ${currentConfig.unusedShapes.size} unused shapes, " +
+                    "after $deadEndCount dead ends, the current best record " +
+                    "is $minObservedShapesRemaining unused shapes")
+        }
+    }
 
-	@Override
-	public Shape determineShape(Configuration currentConfig) {
-		return (Shape) currentConfig.getUnusedShapes().toArray()[rng.nextInt(currentConfig.getUnusedShapes().size())];
-	}
+    override fun determineShape(currentConfig: Configuration): Shape =
+        currentConfig.unusedShapes.random(rng)
 
-	@Override
-	public void placementFailedGeometry(ConfigurationTreeNode currentNode) {
-		this.rejects++;
-	}
+    override fun placementFailedGeometry() {
+        deadEndCount++
+    }
 
-	@Override
-	public void placementFailedDeadCells(ConfigurationTreeNode currentNode) {
-		this.rejects++;
-	}
+    override fun placementFailedDeadCells() {
+        deadEndCount++
+    }
 
-	@Override
-	public void placementSucceeded(Configuration newConfig, ConfigurationTreeNode currentNode) throws FoundException, EndException {
-		if (newConfig.getUnusedShapes().size() < this.record) {
-			this.record = newConfig.getUnusedShapes().size();
-		}
-		ConfigurationTreeNode child = new ConfigurationTreeNode(currentNode, newConfig);
-		this.traverse(child);
-	}
+    override fun placementSucceeded(newConfig: Configuration, currentNode: ConfigurationTreeNode) {
+        if (newConfig.unusedShapes.size < minObservedShapesRemaining) {
+            minObservedShapesRemaining = newConfig.unusedShapes.size
+        }
+        val child = ConfigurationTreeNode(currentNode, newConfig)
+        traverse(child)
+    }
 }
