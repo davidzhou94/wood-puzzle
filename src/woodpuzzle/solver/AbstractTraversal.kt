@@ -15,12 +15,12 @@ abstract class AbstractTraversal
  */ protected constructor(private val puzzle: Puzzle) {
     // Abstract methods:
     @Throws(EndException::class)
-    abstract fun preTraversal(c: Configuration)
-    abstract fun determineShape(c: Configuration): Shape
-    abstract fun placementFailedGeometry(n: ConfigurationTreeNode)
-    abstract fun placementFailedDeadCells(n: ConfigurationTreeNode)
+    abstract fun preTraversal(currentConfig: Configuration)
+    abstract fun determineShape(currentConfig: Configuration): Shape
+    abstract fun placementFailedGeometry(currentNode: ConfigurationTreeNode)
+    abstract fun placementFailedDeadCells(currentNode: ConfigurationTreeNode)
     @Throws(FoundException::class, EndException::class)
-    abstract fun placementSucceeded(newConfig: Configuration, n: ConfigurationTreeNode?)
+    abstract fun placementSucceeded(newConfig: Configuration, currentNode: ConfigurationTreeNode)
 
     /**
      * Traverses the potential children configurations of the configuration

@@ -1,55 +1,45 @@
-package woodpuzzle.solver;
+package woodpuzzle.solver
 
-import java.util.Random;
+import woodpuzzle.model.Configuration
+import woodpuzzle.model.Puzzle
+import woodpuzzle.model.Shape
+import kotlin.random.Random
 
-import woodpuzzle.model.Configuration;
-import woodpuzzle.model.Puzzle;
-import woodpuzzle.model.Shape;
+class HaltingDFSDescentTraversal(puzzle: Puzzle, private val solver: HaltingDFSSolver) : AbstractTraversal(puzzle) {
+    companion object {
+        private const val DEAD_END_LIMIT = 1000000
+    }
 
-class HaltingDFSDescentTraversal extends AbstractTraversal {
-	private static final int DEAD_END_LIMIT = 1000000;
-	
-	private long deadEndCount = 0;
-	private int minObservedShapesRemaining = Integer.MAX_VALUE;
-	private int currentShapesRemaining;
-	
-	private final Random rng = new Random();
-	private final HaltingDFSSolver solver;
-	
-	protected HaltingDFSDescentTraversal(Puzzle puzzle, HaltingDFSSolver solver) {
-		super(puzzle);
-		this.solver = solver;
-	}
-	
-	@Override
-	public void preTraversal(Configuration c) throws EndException {
-		currentShapesRemaining = c.getUnusedShapes().size();
-		if (currentShapesRemaining < minObservedShapesRemaining) {
-			minObservedShapesRemaining = currentShapesRemaining;
-		}
-		if (deadEndCount > DEAD_END_LIMIT){
-			solver.reportAbandonedTraversal(minObservedShapesRemaining);
-			throw EndException.INSTANCE;
-		}
-	}
+    private var deadEndCount: Long = 0
+    private var minObservedShapesRemaining = Int.MAX_VALUE
+    private var currentShapesRemaining = 0
+    private val rng = Random(Random.nextLong())
 
-	@Override
-	public Shape determineShape(Configuration c) {
-		return (Shape) c.getUnusedShapes().toArray()[rng.nextInt(c.getUnusedShapes().size())];
-	}
+    @Throws(EndException::class)
+    override fun preTraversal(currentConfig: Configuration) {
+        currentShapesRemaining = currentConfig.unusedShapes.size
+        if (currentShapesRemaining < minObservedShapesRemaining) {
+            minObservedShapesRemaining = currentShapesRemaining
+        }
+        if (deadEndCount > DEAD_END_LIMIT) {
+            solver.reportAbandonedTraversal(minObservedShapesRemaining)
+            throw EndException
+        }
+    }
 
-	@Override
-	public void placementFailedGeometry(ConfigurationTreeNode n) {
-		deadEndCount++;
-	}
+    override fun determineShape(currentConfig: Configuration): Shape =
+        currentConfig.unusedShapes.random(rng)
 
-	@Override
-	public void placementFailedDeadCells(ConfigurationTreeNode n) {
-		deadEndCount++;
-	}
+    override fun placementFailedGeometry(currentNode: ConfigurationTreeNode) {
+        deadEndCount++
+    }
 
-	@Override
-	public void placementSucceeded(Configuration newConfig, ConfigurationTreeNode n) throws FoundException, EndException {
-		this.traverse(new ConfigurationTreeNode(n, newConfig));
-	}
+    override fun placementFailedDeadCells(currentNode: ConfigurationTreeNode) {
+        deadEndCount++
+    }
+
+    @Throws(FoundException::class, EndException::class)
+    override fun placementSucceeded(newConfig: Configuration, currentNode: ConfigurationTreeNode) {
+        super.traverse(ConfigurationTreeNode(currentNode, newConfig))
+    }
 }

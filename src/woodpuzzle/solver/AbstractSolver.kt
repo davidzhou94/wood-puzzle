@@ -15,8 +15,6 @@ abstract class AbstractSolver
  * @param puzzle The puzzle to use with this solver instance.
  */
 constructor (val puzzle: Puzzle) {
-    @kotlin.jvm.JvmField
-	protected var rootConfigs: Set<Configuration> = emptySet()
 
     /**
      * Measures the variant time of the solver algorithm, attempts to find a solution
@@ -70,18 +68,5 @@ constructor (val puzzle: Puzzle) {
             }
             println()
         }
-    }
-
-    /**
-     * Generates the root configurations (e.g. one configuration per each combination
-     * of shapes to use / removed).
-     * @param root The root configuration to copy from
-     * @throws Exception
-     */
-    protected fun generateRootConfigs(root: Configuration) {
-        val allShapes = puzzle.shapes.toMutableList()
-        allShapes.shuffle()
-        rootConfigs = rootConfigs + root
-        println("Top level traversal complete")
     }
 }

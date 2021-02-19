@@ -1,55 +1,53 @@
-package woodpuzzle.solver;
+package woodpuzzle.solver
 
-import java.util.Random;
-
-import woodpuzzle.model.Configuration;
-import woodpuzzle.model.Puzzle;
-import woodpuzzle.model.Shape;
+import woodpuzzle.model.Configuration
+import woodpuzzle.model.Puzzle
+import woodpuzzle.model.Shape
+import java.util.concurrent.ExecutorService
+import java.util.concurrent.Executors
+import kotlin.random.Random
 
 /**
- * The HaltingDFS strategy for "top-level" traversals of the node  
+ * The HaltingDFS strategy for "top-level" traversals of the node
  * configuration tree. This traversal submits a HaltingDFSDescentThread
- * for each top-level configuration node (i.e. each choice of first 
+ * for each top-level configuration node (i.e. each choice of first
  * shape placement).
  * @author david
- *
  */
-class HaltingDFSTopLevelTraversal extends AbstractTraversal {
-	private final Random rng = new Random(new Random().nextLong());
-	private final HaltingDFSSolver solver;
-	HaltingDFSTopLevelTraversal(Puzzle puzzle, HaltingDFSSolver solver) {
-		super(puzzle);
-		this.solver = solver;
-	}
+internal class HaltingDFSTopLevelTraversal(puzzle: Puzzle, private val solver: HaltingDFSSolver) : AbstractTraversal(puzzle) {
+    private val rng = Random(Random.nextLong())
+    private val executor: ExecutorService = Executors.newCachedThreadPool()
 
-	@Override
-	public void preTraversal(Configuration c) throws EndException {
-		// do nothing
-	}
+    @Throws(EndException::class)
+    override fun preTraversal(currentConfig: Configuration) {
+        // do nothing
+    }
 
-	@Override
-	public Shape determineShape(Configuration c) {
-		return (Shape) c.getUnusedShapes().toArray()[rng.nextInt(c.getUnusedShapes().size())];
-	}
+    override fun determineShape(currentConfig: Configuration): Shape =
+        currentConfig.unusedShapes.random(rng)
 
-	@Override
-	public void placementFailedGeometry(ConfigurationTreeNode n) {
-		// do nothing
-	}
+    override fun placementFailedGeometry(currentNode: ConfigurationTreeNode) {
+        // do nothing
+    }
 
-	@Override
-	public void placementFailedDeadCells(ConfigurationTreeNode n) {
-		// do nothing
-	}
+    override fun placementFailedDeadCells(currentNode: ConfigurationTreeNode) {
+        // do nothing
+    }
 
-	@Override
-	public void placementSucceeded(Configuration newConfig, ConfigurationTreeNode n) throws FoundException, EndException {
-		ConfigurationTreeNode child = new ConfigurationTreeNode(n, newConfig);
-		HaltingDFSDescentTraversal traversal = new HaltingDFSDescentTraversal(n.getConfig().getPuzzle(), this.solver);
-		try {
-			traversal.traverse(child);
-		} catch (EndException e) {
-			// do nothing
-		}
-	}
+    @Throws(FoundException::class, EndException::class)
+    override fun placementSucceeded(newConfig: Configuration, currentNode: ConfigurationTreeNode) {
+        val child = ConfigurationTreeNode(currentNode, newConfig)
+        val traversal = HaltingDFSDescentTraversal(currentNode.config.puzzle, solver)
+        executor.submit {
+            try {
+                println("Submitting a thread to to threadpool")
+                traversal.traverse(child)
+            } catch (e: FoundException) {
+                solver.reportSolution(e.config)
+            } catch (e: EndException) {
+                // do nothing, should not see this exception here
+                // under HaltingDFS
+            }
+        }
+    }
 }

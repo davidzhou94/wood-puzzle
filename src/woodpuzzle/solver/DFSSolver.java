@@ -11,20 +11,18 @@ public class DFSSolver extends AbstractSolver {
 	@Override
 	public Configuration findSolution() {
 		DFSStrategy traversal = new DFSStrategy(this.getPuzzle());
-		
-		this.generateRootConfigs(new Configuration(this.getPuzzle()));
-		
-		for (Configuration c : rootConfigs) {
-			try {
-				traversal.traverse(new ConfigurationTreeNode(null, c));
-			} catch (FoundException e) {
-				return e.getConfig();
-			} catch (EndException e) {
-				System.out.println("Unexpected exception in HaltingDFSSolver: ");
-				e.printStackTrace();
-			}
+		Configuration rootConfig = new Configuration(this.getPuzzle());
+		ConfigurationTreeNode rootNode = new ConfigurationTreeNode(null, rootConfig);
+
+		try {
+			traversal.traverse(rootNode);
+		} catch (FoundException e) {
+			return e.getConfig();
+		} catch (EndException e) {
+			System.out.println("Unexpected exception in DFSSolver: ");
+			e.printStackTrace();
 		}
-		
+
 		return null;
 	}
 }

@@ -23,35 +23,35 @@ class DFSStrategy extends AbstractTraversal {
 	}
 
 	@Override
-	public void preTraversal(Configuration c) throws EndException {
+	public void preTraversal(Configuration currentConfig) throws EndException {
 		this.count++;
-		if (c.getUnusedShapes().size() < this.record) this.record = c.getUnusedShapes().size();
+		if (currentConfig.getUnusedShapes().size() < this.record) this.record = currentConfig.getUnusedShapes().size();
 		if (this.count % 1000 == 0) {
-			System.out.print("\rConfig #" + this.count + " has " + c.getUnusedShapes().size() + " unused shapes, after " + this.rejects + " dead ends, the current best record is " + this.record);
+			System.out.print("\rConfig #" + this.count + " has " + currentConfig.getUnusedShapes().size() + " unused shapes, after " + this.rejects + " dead ends, the current best record is " + this.record);
 		}
 	}
 
 	@Override
-	public Shape determineShape(Configuration c) {
-		return (Shape) c.getUnusedShapes().toArray()[rng.nextInt(c.getUnusedShapes().size())];
+	public Shape determineShape(Configuration currentConfig) {
+		return (Shape) currentConfig.getUnusedShapes().toArray()[rng.nextInt(currentConfig.getUnusedShapes().size())];
 	}
 
 	@Override
-	public void placementFailedGeometry(ConfigurationTreeNode n) {
+	public void placementFailedGeometry(ConfigurationTreeNode currentNode) {
 		this.rejects++;
 	}
 
 	@Override
-	public void placementFailedDeadCells(ConfigurationTreeNode n) {
+	public void placementFailedDeadCells(ConfigurationTreeNode currentNode) {
 		this.rejects++;
 	}
 
 	@Override
-	public void placementSucceeded(Configuration newConfig, ConfigurationTreeNode n) throws FoundException, EndException {
+	public void placementSucceeded(Configuration newConfig, ConfigurationTreeNode currentNode) throws FoundException, EndException {
 		if (newConfig.getUnusedShapes().size() < this.record) {
 			this.record = newConfig.getUnusedShapes().size();
 		}
-		ConfigurationTreeNode child = new ConfigurationTreeNode(n, newConfig);
+		ConfigurationTreeNode child = new ConfigurationTreeNode(currentNode, newConfig);
 		this.traverse(child);
 	}
 }
