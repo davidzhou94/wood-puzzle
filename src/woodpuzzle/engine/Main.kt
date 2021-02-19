@@ -3,7 +3,7 @@ package woodpuzzle.engine
 import org.xml.sax.SAXException
 import woodpuzzle.engine.XMLReader.buildPuzzle
 import woodpuzzle.model.Puzzle
-import woodpuzzle.solver.DFSSolver
+import woodpuzzle.solver.HaltingDFSSolver
 import java.io.IOException
 import javax.xml.parsers.ParserConfigurationException
 
@@ -27,5 +27,5 @@ fun main(args: Array<String>) {
         return
     }
 
-    DFSSolver(puzzle).solvePuzzle()
+    HaltingDFSSolver(puzzle).solvePuzzle()
 }

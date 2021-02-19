@@ -4,7 +4,7 @@ import kotlin.math.min
 
 class Shape(val sideLength: Int, coordinates: List<Coordinate>) {
     private val total: Int = sideLength * sideLength * sideLength
-    val cells: IntArray = IntArray(total)
+    private val cells: IntArray = IntArray(total)
 
     /**
      * Initialized the cells of this shape by setting all cells to 0.
