@@ -18,7 +18,7 @@ public class DFSSolver extends AbstractSolver {
 			try {
 				traversal.traverse(new ConfigurationTreeNode(null, c));
 			} catch (FoundException e) {
-				return e.config;
+				return e.getConfig();
 			} catch (EndException e) {
 				System.out.println("Unexpected exception in HaltingDFSSolver: ");
 				e.printStackTrace();

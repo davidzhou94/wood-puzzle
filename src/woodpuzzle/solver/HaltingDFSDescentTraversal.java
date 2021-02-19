@@ -29,7 +29,7 @@ class HaltingDFSDescentTraversal extends AbstractTraversal {
 		}
 		if (deadEndCount > DEAD_END_LIMIT){
 			solver.reportAbandonedTraversal(minObservedShapesRemaining);
-			throw new EndException();
+			throw EndException.INSTANCE;
 		}
 	}
 

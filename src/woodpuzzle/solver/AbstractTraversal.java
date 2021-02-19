@@ -44,7 +44,7 @@ public abstract class AbstractTraversal {
 	 * before a solution is found.
 	 */
 	protected final void traverse(ConfigurationTreeNode n) throws FoundException, EndException {
-		Configuration currentConfig = n.config;
+		Configuration currentConfig = n.getConfig();
 
 		this.preTraversal(currentConfig);
 

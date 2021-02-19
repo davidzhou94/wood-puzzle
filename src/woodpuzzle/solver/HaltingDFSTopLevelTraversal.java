@@ -45,7 +45,7 @@ class HaltingDFSTopLevelTraversal extends AbstractTraversal {
 	@Override
 	public void placementSucceeded(Configuration newConfig, ConfigurationTreeNode n) throws FoundException, EndException {
 		ConfigurationTreeNode child = new ConfigurationTreeNode(n, newConfig);
-		HaltingDFSDescentTraversal traversal = new HaltingDFSDescentTraversal(n.config.getPuzzle(), this.solver);
+		HaltingDFSDescentTraversal traversal = new HaltingDFSDescentTraversal(n.getConfig().getPuzzle(), this.solver);
 		try {
 			traversal.traverse(child);
 		} catch (EndException e) {

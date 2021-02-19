@@ -48,7 +48,7 @@ public class HaltingDFSSolver extends AbstractSolver {
 				try {
 					traversal.traverse(new ConfigurationTreeNode(null, c));
 				} catch (FoundException e) {
-					this.reportSolution(e.config);
+					this.reportSolution(e.getConfig());
 				} catch (EndException e) {
 					// do nothing, should not see this exception here 
 					// under HaltingDFS
