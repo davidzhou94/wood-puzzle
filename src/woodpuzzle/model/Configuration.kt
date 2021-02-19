@@ -39,9 +39,9 @@ class Configuration {
     /**
      * Attempts to place the given shape in the position specified
      * by the given list of coordinates. The following must be true:
-     * 1) The given coordinates are valid
-     * 2) The given coordinates do not overlap with a placed shape
-     * 3) The list of coordinates correspond to the given shape
+     * 1) The given coordinates are inside the box
+     * 2) The given coordinates do not collide with a placed shape
+     * 3) The list of coordinates is a rotation of the given shape
      * If the shape is placed successfully, it is removed from the set
      * of unused shapes and the given coordinates in the cells of this
      * configuration will correspond to the given shape.

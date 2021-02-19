@@ -52,9 +52,4 @@ class HaltingDFSDescentTraversal extends AbstractTraversal {
 	public void placementSucceeded(Configuration newConfig, ConfigurationTreeNode n) throws FoundException, EndException {
 		this.traverse(new ConfigurationTreeNode(n, newConfig));
 	}
-
-	@Override
-	void postTraversal(Configuration c) throws EndException {
-		// Do nothing
-	}
 }

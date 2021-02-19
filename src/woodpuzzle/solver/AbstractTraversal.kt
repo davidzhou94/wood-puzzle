@@ -1,186 +1,134 @@
-package woodpuzzle.solver;
+package woodpuzzle.solver
 
-import java.util.ArrayList;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Queue;
-
-import woodpuzzle.model.*;
+import woodpuzzle.model.*
+import kotlin.Throws
+import java.util.*
 
 /**
  * All traversal algorithms should inherit from this class.
  * @author david
- *
  */
-public abstract class AbstractTraversal {
-	private final Puzzle puzzle;
-	
-	/**
-	 * Base constructor.
-	 * @param puzzle The puzzle to use with this solver instance.
-	 */
-	protected AbstractTraversal(Puzzle puzzle) {
-		this.puzzle = puzzle;
-	}
-	
-	// Abstract methods:
-	
-	abstract void preTraversal(Configuration c) throws EndException;
-	abstract void postTraversal(Configuration c) throws EndException;
-	abstract Shape determineShape(Configuration c);
-	abstract void placementFailedGeometry(ConfigurationTreeNode n);
-	abstract void placementFailedDeadCells(ConfigurationTreeNode n);
-	abstract void placementSucceeded(Configuration newConfig, ConfigurationTreeNode n) throws FoundException, EndException;
-	
-	/**
-	 * Traverses the potential children configurations of the configuration
-	 * at the given node according to the given strategy. Flow is controlled
-	 * by throwing an exception to indicate whether the traversal has found
-	 * a solution or whether it is terminating early due to an indication
-	 * in the strategy.
-	 * @param n The parent node.
-	 * @throws FoundException Thrown when a solution is found.
-	 * @throws EndException Throw when the strategy terminates the traversal 
-	 * before a solution is found.
-	 */
-	protected final void traverse(ConfigurationTreeNode n) throws FoundException, EndException {
-		Configuration currentConfig = n.getConfig();
+abstract class AbstractTraversal
+/**
+ * Base constructor.
+ * @param puzzle The puzzle to use with this solver instance.
+ */ protected constructor(private val puzzle: Puzzle) {
+    // Abstract methods:
+    @Throws(EndException::class)
+    abstract fun preTraversal(c: Configuration)
+    abstract fun determineShape(c: Configuration): Shape
+    abstract fun placementFailedGeometry(n: ConfigurationTreeNode)
+    abstract fun placementFailedDeadCells(n: ConfigurationTreeNode)
+    @Throws(FoundException::class, EndException::class)
+    abstract fun placementSucceeded(newConfig: Configuration, n: ConfigurationTreeNode?)
 
-		this.preTraversal(currentConfig);
+    /**
+     * Traverses the potential children configurations of the configuration
+     * at the given node according to the given strategy. Flow is controlled
+     * by throwing an exception to indicate whether the traversal has found
+     * a solution or whether it is terminating early due to an indication
+     * in the strategy.
+     * @param node The parent node.
+     * @throws FoundException Thrown when a solution is found.
+     * @throws EndException Throw when the strategy terminates the traversal
+     * before a solution is found.
+     */
+    @Throws(FoundException::class, EndException::class)
+    fun traverse(node: ConfigurationTreeNode) {
+        val currentConfig = node.config
+        preTraversal(currentConfig)
+        val shape = determineShape(currentConfig)
+        val sideLength = shape.sideLength
+        // Try every possible placement in the puzzle box
+        for (xOffset in 0 until puzzle.width - 1) {
+            for (zOffset in 0 until puzzle.length - 1) {
+                for (yAxis in YAxis.values()) {
+                    for (zAxis in ZAxis.values()) {
+                        val newConfig = Configuration(currentConfig)
+                        val rotatedShape = shape.rotateShape(yAxis, zAxis)
+                        var placement: List<Coordinate> = emptyList()
+                        // Unhash the coordinates
+                        for (x in 0 until sideLength) {
+                            for (y in 0 until sideLength) {
+                                for (z in 0 until sideLength) {
+                                    if (rotatedShape[shape.hashCoordinate(x, y, z)] == 1) {
+                                        placement = placement + Coordinate(x + xOffset, y, z + zOffset)
+                                    }
+                                }
+                            }
+                        }
+                        if (!newConfig.placeShape(shape, placement)) {
+                            placementFailedGeometry(node)
+                            continue
+                        }
+                        if (newConfig.allCellsFilled()) throw FoundException(newConfig)
+                        if (hasDeadCells(newConfig)) {
+                            placementFailedDeadCells(node)
+                            continue
+                        }
+                        placementSucceeded(newConfig, node)
+                    }
+                }
+            }
+        }
+    }
 
-		Shape s = this.determineShape(currentConfig);
-
-		int sideLength = s.getSideLength();
-		for(int x = 0; x < this.puzzle.getWidth() - 1; x++) {
-			for(int z = 0; z < this.puzzle.getLength() - 1; z++) {
-				List<Coordinate> placement;
-				for (YAxis yaxis: YAxis.values()) {
-					for (ZAxis zaxis: ZAxis.values()) {
-						Configuration newConfig = new Configuration(currentConfig);
-						int[] rotatedShape = s.rotateShape(yaxis, zaxis);
-						placement = new ArrayList<Coordinate>();
-						for (int i = 0; i < sideLength; i++) {
-							for (int j = 0; j < sideLength; j++) {
-								for (int k = 0; k < sideLength; k++) {
-									if (rotatedShape[s.hashCoordinate(i, j, k)] == 1) {
-										placement.add(new Coordinate(i + x, j, k + z));
-									}
-								}
-							}
-						}
-						
-						if (!newConfig.placeShape(s, placement)) {
-							this.placementFailedGeometry(n);
-							continue;
-						}
-						if (newConfig.allCellsFilled()) throw new FoundException(newConfig);
-						if (hasDeadCells(newConfig)) {
-							this.placementFailedDeadCells(n);
-							continue;
-						}
-						
-						this.placementSucceeded(newConfig, n);
-					}
-				}
-			}
-		}
-		
-		this.postTraversal(currentConfig);
-	}
-	
-	/**
-	 * Checks whether a configuration has isolated cells. That is,
-	 * if a group of empty and connected cells is smaller than the
-	 * given minimum shape size, then it is isolated. Furthermore,
-	 * if all shapes are of identical size then a similar group with
-	 * the number of empty cells not a multiple of the shape size is
-	 * also considered isolated.
-	 * @param config The configuration to check.
-	 * @return true if there are isolated cells, otherwise false.
-	 */
-	private boolean hasDeadCells(Configuration config) {
-		boolean visited[] = new boolean[this.puzzle.getTotalCells()];
-		Shape cells[] = config.getCells();
-		for (int i = 0; i < this.puzzle.getTotalCells(); i++) visited[i] = false;
-		for (int x = 0; x < this.puzzle.getWidth(); x++) {
-			for (int y = 0; y < this.puzzle.getHeight(); y++) {
-				for (int z = 0; z < this.puzzle.getLength(); z++) {
-					int pos = this.puzzle.hashCoordinate(x, y, z);
-					if (visited[pos]) continue;
-					visited[pos] = true;
-					if (cells[pos] != null) continue;
-					int emptyCount = 1;
-					Queue<Coordinate> checkNeighbours = new LinkedList<Coordinate>();
-					checkNeighbours.add(new Coordinate(x, y, z));
-					while (!checkNeighbours.isEmpty()) {
-						Coordinate c = checkNeighbours.poll();
-						if (this.puzzle.isValidCoordinate(c.getX() + 1, c.getY(), c.getZ())) {
-							int adj = this.puzzle.hashCoordinate(c.getX()+1, c.getY(), c.getZ());
-							if (visited[adj] == false) {
-								if (cells[adj] == null) {
-									emptyCount++;
-									checkNeighbours.add(c.vectorAdd(1, 0, 0));
-								}
-								visited[adj] = true;
-							}
-						}
-						if (this.puzzle.isValidCoordinate(c.getX() - 1, c.getY(), c.getZ())) {
-							int adj = this.puzzle.hashCoordinate(c.getX()-1, c.getY(), c.getZ());
-							if (visited[adj] == false) {
-								if (cells[adj] == null) {
-									emptyCount++;
-									checkNeighbours.add(c.vectorAdd(-1, 0, 0));
-								}
-								visited[adj] = true;
-							}
-						}
-						if (this.puzzle.isValidCoordinate(c.getX(), c.getY()+1, c.getZ())) {
-							int adj = this.puzzle.hashCoordinate(c.getX(), c.getY()+1, c.getZ());
-							if (visited[adj] == false) {
-								if (cells[adj] == null) {
-									emptyCount++;
-									checkNeighbours.add(c.vectorAdd(0, 1, 0));
-								}
-								visited[adj] = true;
-							}
-						}
-						if (this.puzzle.isValidCoordinate(c.getX(), c.getY()-1, c.getZ())) {
-							int adj = this.puzzle.hashCoordinate(c.getX()+1, c.getY()-1, c.getZ());
-							if (visited[adj] == false) {
-								if (cells[adj] == null) {
-									emptyCount++;
-									checkNeighbours.add(c.vectorAdd(0, -1, 0));
-								}
-								visited[adj] = true;
-							}
-						}
-						if (this.puzzle.isValidCoordinate(c.getX(), c.getY(), c.getZ()+1)) {
-							int adj = this.puzzle.hashCoordinate(c.getX(), c.getY(), c.getZ()+1);
-							if (visited[adj] == false) {
-								if (cells[adj] == null) {
-									emptyCount++;
-									checkNeighbours.add(c.vectorAdd(0, 0, 1));
-								}
-								visited[adj] = true;
-							}
-						}
-						if (this.puzzle.isValidCoordinate(c.getX(), c.getY(), c.getZ()-1)) {
-							int adj = this.puzzle.hashCoordinate(c.getX(), c.getY(), c.getZ()-1);
-							if (visited[adj] == false) {
-								if (cells[adj] == null) {
-									emptyCount++;
-									checkNeighbours.add(c.vectorAdd(0, 0, -1));
-								}
-								visited[adj] = true;
-							}
-						}
-					}
-					if (emptyCount < this.puzzle.getMinShapeSize()) return true;
-					if (this.puzzle.getMinShapeSize() == this.puzzle.getMaxShapeSize() &&
-							emptyCount % this.puzzle.getMaxShapeSize() != 0) return true;
-				}
-			}
-		}
-		return false;
-	}
+    /**
+     * Checks whether a configuration has isolated cells. That is,
+     * if a group of empty and connected cells is smaller than the
+     * given minimum shape size, then it is isolated. Furthermore,
+     * if all shapes are of identical size then a similar group with
+     * the number of empty cells not a multiple of the shape size is
+     * also considered isolated.
+     * @param config The configuration to check.
+     * @return true if there are isolated cells, otherwise false.
+     */
+    private fun hasDeadCells(config: Configuration): Boolean {
+        val visited = BooleanArray(puzzle.totalCells) // Inits to false
+        val cells = config.cells
+        for (x in 0 until puzzle.width) {
+            for (y in 0 until puzzle.height) {
+                for (z in 0 until puzzle.length) {
+                    // Iterates over every cell of the box looking for an empty gap
+                    val currentIndex = puzzle.hashCoordinate(x, y, z)
+                    if (visited[currentIndex]) continue
+                    visited[currentIndex] = true
+                    if (cells[currentIndex] != null) continue
+                    // If we are here then the current cell is unvisited and an empty gap, so
+                    // check how big the gap is
+                    var emptyCount = 1
+                    val checkNeighbours: Queue<Coordinate> = LinkedList()
+                    checkNeighbours.add(Coordinate(x, y, z))
+                    while (!checkNeighbours.isEmpty()) {
+                        val c = checkNeighbours.poll()
+                        val coordinatesToVisit: List<Coordinate> = listOf(
+                                Coordinate(c.x + 1, c.y, c.z),
+                                Coordinate(c.x - 1, c.y, c.z),
+                                Coordinate(c.x, c.y + 1, c.z),
+                                Coordinate(c.x, c.y - 1, c.z),
+                                Coordinate(c.x, c.y, c.z + 1),
+                                Coordinate(c.x, c.y, c.z - 1),
+                        )
+                        for (adjacentCoordinate in coordinatesToVisit) {
+                            if (!puzzle.isValidCoordinate(adjacentCoordinate)) continue
+                            val adjacentIndex = puzzle.hashCoordinate(adjacentCoordinate)
+                            if (visited[adjacentIndex]) continue
+                            visited[adjacentIndex] = true
+                            if (cells[adjacentIndex] == null) {
+                                emptyCount++
+                                checkNeighbours.add(adjacentCoordinate)
+                            }
+                        }
+                    }
+                    // If a gap is smaller than the smallest possible shape, it's dead
+                    if (emptyCount < puzzle.minShapeSize) return true
+                    // If the shapes are all the same size, and the gap is not a multiple
+                    // of the shape size, then it's also dead
+                    if (puzzle.minShapeSize == puzzle.maxShapeSize &&
+                            emptyCount % puzzle.maxShapeSize != 0) return true
+                }
+            }
+        }
+        return false
+    }
 }

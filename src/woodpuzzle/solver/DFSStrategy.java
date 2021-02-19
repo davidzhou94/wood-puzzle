@@ -54,9 +54,4 @@ class DFSStrategy extends AbstractTraversal {
 		ConfigurationTreeNode child = new ConfigurationTreeNode(n, newConfig);
 		this.traverse(child);
 	}
-
-	@Override
-	void postTraversal(Configuration c) throws EndException {
-		// Do nothing
-	}
 }

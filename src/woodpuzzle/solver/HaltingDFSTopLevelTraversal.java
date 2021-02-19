@@ -52,9 +52,4 @@ class HaltingDFSTopLevelTraversal extends AbstractTraversal {
 			// do nothing
 		}
 	}
-
-	@Override
-	void postTraversal(Configuration c) throws EndException {
-		// Do nothing
-	}
 }
