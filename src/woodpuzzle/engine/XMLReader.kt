@@ -36,7 +36,6 @@ object XMLReader {
      * @throws SAXException
      * @throws ParserConfigurationException
      */
-    @JvmStatic
     @Throws(SAXException::class, IOException::class, ParserConfigurationException::class)
     fun buildPuzzle(filePath: String): Puzzle {
         val xmlFile = File(filePath)

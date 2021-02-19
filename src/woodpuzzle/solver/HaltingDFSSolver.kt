@@ -45,10 +45,11 @@ class HaltingDFSSolver(p: Puzzle) : AbstractSolver(p) {
                 println("Interrupted while waiting for a solution...")
             }
         }
+        traversal.shutdown()
         return solution
     }
 
-    fun reportSolution(c: Configuration?) {
+    fun reportSolution(c: Configuration) {
         solution = c
     }
 

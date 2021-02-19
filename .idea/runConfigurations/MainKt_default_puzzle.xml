@@ -1,0 +1,17 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="MainKt default puzzle" type="Application" factoryName="Application">
+    <option name="MAIN_CLASS_NAME" value="woodpuzzle.engine.MainKt" />
+    <module name="WoodPuzzle.main" />
+    <option name="PROGRAM_PARAMETERS" value="assets/default.xml" />
+    <option name="VM_PARAMETERS" value="-Xmx8g" />
+    <extension name="coverage">
+      <pattern>
+        <option name="PATTERN" value="woodpuzzle.engine.*" />
+        <option name="ENABLED" value="true" />
+      </pattern>
+    </extension>
+    <method v="2">
+      <option name="Make" enabled="true" />
+    </method>
+  </configuration>
+</component>

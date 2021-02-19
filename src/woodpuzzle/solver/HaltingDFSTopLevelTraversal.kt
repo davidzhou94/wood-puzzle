@@ -50,4 +50,8 @@ internal class HaltingDFSTopLevelTraversal(puzzle: Puzzle, private val solver: H
             }
         }
     }
+
+    fun shutdown() {
+        executor.shutdown()
+    }
 }
