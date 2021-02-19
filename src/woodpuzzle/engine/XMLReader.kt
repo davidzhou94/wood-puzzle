@@ -57,7 +57,7 @@ object XMLReader {
                 shapeCount = rootElement.getAttribute("shapeCount").toInt(),
                 minShapeSize = rootElement.getAttribute("minShapeSize").toInt(),
                 maxShapeSize = rootElement.getAttribute("maxShapeSize").toInt(),
-                minShapesFill = rootElement.getAttribute("minShapesToFill").toInt(),
+                filledShapeCount = rootElement.getAttribute("minShapesToFill").toInt(),
                 shapes = shapes
         )
     }

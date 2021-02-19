@@ -34,6 +34,8 @@ class Configuration {
         unusedShapes = HashSet(configuration.unusedShapes)
     }
 
+    fun allCellsFilled(): Boolean = !cells.contains(null)
+
     /**
      * Attempts to place the given shape in the position specified
      * by the given list of coordinates. The following must be true:

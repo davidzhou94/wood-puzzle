@@ -10,9 +10,9 @@ public class DFSSolver extends AbstractSolver {
 
 	@Override
 	public Configuration findSolution() {
-		DFSStrategy traversal = new DFSStrategy(this.puzzle);
+		DFSStrategy traversal = new DFSStrategy(this.getPuzzle());
 		
-		this.generateRootConfigs(new Configuration(this.puzzle));
+		this.generateRootConfigs(new Configuration(this.getPuzzle()));
 		
 		for (Configuration c : rootConfigs) {
 			try {

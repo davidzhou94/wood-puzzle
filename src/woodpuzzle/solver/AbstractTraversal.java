@@ -73,7 +73,7 @@ public abstract class AbstractTraversal {
 							this.placementFailedGeometry(n);
 							continue;
 						}
-						if (newConfig.getUnusedShapes().isEmpty()) throw new FoundException(newConfig);
+						if (newConfig.allCellsFilled()) throw new FoundException(newConfig);
 						if (hasDeadCells(newConfig)) {
 							this.placementFailedDeadCells(n);
 							continue;

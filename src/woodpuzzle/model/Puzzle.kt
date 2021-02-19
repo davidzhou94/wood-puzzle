@@ -8,7 +8,7 @@ class Puzzle(
         val shapeCount: Int,
         val minShapeSize: Int,
         val maxShapeSize: Int,
-        val minShapesFill: Int,
+        val filledShapeCount: Int,
         val shapes: Set<Shape>
 ) {
     val totalCells: Int = width * height * length

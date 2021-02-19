@@ -36,8 +36,8 @@ public class HaltingDFSSolver extends AbstractSolver {
 	 */
 	@Override
 	public Configuration findSolution() {
-		HaltingDFSTopLevelTraversal traversal = new HaltingDFSTopLevelTraversal(this.puzzle, this);
-		this.generateRootConfigs(new Configuration(this.puzzle));
+		HaltingDFSTopLevelTraversal traversal = new HaltingDFSTopLevelTraversal(this.getPuzzle(), this);
+		this.generateRootConfigs(new Configuration(this.getPuzzle()));
 		
 		System.out.printf("Creating threadpool with %d threads... ", this.rootConfigs.size());
 		this.executor = Executors.newFixedThreadPool(this.rootConfigs.size());
@@ -81,9 +81,5 @@ public class HaltingDFSSolver extends AbstractSolver {
 		}
 		abandonedAttempts++;
 		System.out.printf("Minimum shapes remaining: %d, %d attempts abandoned\r", this.recordLevel, this.abandonedAttempts);
-	}
-	
-	void submitThreadForExecution(Runnable t) {
-		this.executor.submit(t);
 	}
 }
