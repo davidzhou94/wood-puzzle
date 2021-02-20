@@ -13,10 +13,8 @@ class ConfigurationTest {
         const val HEIGHT = 2
         const val LENGTH = 5
         const val SHAPE_SIDE = 3
-        const val SHAPE_COUNT = 3
         const val MIN_SHAPE_SIZE = 5
         const val MAX_SHAPE_SIZE = 5
-        const val MIN_SHAPE_FIT = 3
     }
     
     private val s1 = Shape(SHAPE_SIDE,
@@ -44,8 +42,7 @@ class ConfigurationTest {
             Coordinate(0, 1, 1),
         ))
     private val shapes = setOf(s1, s2, s3)
-    private val p = Puzzle(WIDTH, HEIGHT, LENGTH, SHAPE_SIDE,
-    SHAPE_COUNT, MIN_SHAPE_SIZE, MAX_SHAPE_SIZE, MIN_SHAPE_FIT, shapes)
+    private val p = Puzzle(WIDTH, HEIGHT, LENGTH, SHAPE_SIDE, MIN_SHAPE_SIZE, MAX_SHAPE_SIZE, shapes)
 
     @Test
     fun test() {

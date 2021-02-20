@@ -9,7 +9,8 @@ import javax.xml.parsers.ParserConfigurationException
 
 /**
  * Run using:
- * $ java -Xmx8g -cp F:\repos\wood-puzzle\WoodPuzzle\bin\ woodPuzzle.engine.Engine .\assets\default.xml
+ * $ cd C:\Users\david\projects\wood-puzzle\
+ * $ java -jar C:\Users\david\projects\wood-puzzle\build\libs\WoodPuzzle-1.0-SNAPSHOT.jar .\assets\default.xml
  * @param args first argument is the path to the puzzle definition
  */
 fun main(args: Array<String>) {
