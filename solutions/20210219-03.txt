@@ -1,0 +1,21 @@
+Time elapsed: 00:00:06:982
+
+Solution found:
+
+A B C C C
+B B D D E
+F G D E E
+F F F H E
+I J H H K
+L J M M M
+L N M O O
+L L O O P
+
+A B B D C
+A A G D C
+A G G E K
+I G F H K
+I I H K K
+I J J J M
+L N N P P
+N N O P P
