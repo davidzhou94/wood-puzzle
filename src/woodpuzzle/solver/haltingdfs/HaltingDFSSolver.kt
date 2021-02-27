@@ -2,8 +2,6 @@ package woodpuzzle.solver.haltingdfs
 
 import woodpuzzle.model.Configuration
 import woodpuzzle.model.Puzzle
-import woodpuzzle.solver.EndException
-import woodpuzzle.solver.FoundException
 import woodpuzzle.solver.Solver
 
 /**
@@ -29,26 +27,19 @@ class HaltingDFSSolver(
      * @return The first solution configuration found.
      */
     override fun findSolution(): Configuration? {
-        val traversal = HaltingDFSTopLevelTraversal(puzzle, this)
+        val topLevelTraversal = HaltingDFSTopLevelTraversal(puzzle, this)
         val rootConfig = Configuration(puzzle)
         println("Starting top level traversal")
-        try {
-            traversal.traverse(rootConfig)
-        } catch (e: FoundException) {
-            reportSolution(e.config)
-        } catch (e: EndException) {
-            // do nothing, should not see this exception here
-            // under HaltingDFS
-        }
+        topLevelTraversal.traverse(rootConfig)
         println("Finished traversing top level of configurations, waiting on solution.")
-        while (solution == null && traversal.running()) {
+        while (solution == null && topLevelTraversal.running()) {
             try {
                 Thread.sleep(100L)
             } catch (e: InterruptedException) {
                 println("Interrupted while waiting for a solution...")
             }
         }
-        traversal.stop()
+        topLevelTraversal.stop()
         return solution
     }
 

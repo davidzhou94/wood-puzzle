@@ -1,12 +1,18 @@
 package woodpuzzle.solver
 
 import woodpuzzle.model.*
+import kotlin.math.min
+import kotlin.random.Random
+
+val rng = Random(Random.nextLong())
 
 interface Traversal {
     val puzzle: Puzzle
+    var minUnusedShapes: Int
 
     fun preTraversal(currentConfig: Configuration) { }
-    fun determineShape(currentConfig: Configuration): Shape = puzzle.shapes.first()
+    fun determineShape(currentConfig: Configuration): Shape =
+        currentConfig.unusedShapes.random(rng)
     fun placementFailedGeometry() { }
     fun placementFailedDeadCells() { }
     fun placementSucceeded(newConfig: Configuration) { }
@@ -27,15 +33,14 @@ interface Traversal {
                 // CACHED_TRANSFORMS contains all rotations combinations
                 for (transform in CACHED_TRANSFORMS) {
                     val rotatedShape = shape.applyTransform(transform)
-
                     val placement = shapeArrayToCoordinateList(sideLength, rotatedShape)
                         .map { it.vectorAdd(xOffset, 0, zOffset) }
-
                     val newConfig = currentConfig.placeShape(shape, placement)
                     if (newConfig == null) {
                         placementFailedGeometry()
                         continue
                     }
+                    minUnusedShapes = min(newConfig.unusedShapes.size, minUnusedShapes)
                     if (newConfig.allCellsFilled()) throw FoundException(newConfig)
                     if (newConfig.hasDeadCells()) {
                         placementFailedDeadCells()

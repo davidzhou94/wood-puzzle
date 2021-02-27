@@ -2,7 +2,6 @@ package woodpuzzle.solver.haltingdfs
 
 import woodpuzzle.model.Configuration
 import woodpuzzle.model.Puzzle
-import woodpuzzle.model.Shape
 import woodpuzzle.solver.EndException
 import woodpuzzle.solver.FoundException
 import woodpuzzle.solver.Traversal
@@ -10,7 +9,6 @@ import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
 import java.util.concurrent.Future
 import java.util.concurrent.TimeUnit
-import kotlin.random.Random
 
 /**
  * The HaltingDFS strategy for "top-level" traversals of the node
@@ -23,7 +21,7 @@ class HaltingDFSTopLevelTraversal(
     override val puzzle: Puzzle,
     private val solver: HaltingDFSSolver
 ) : Traversal {
-    private val rng = Random(Random.nextLong())
+    override var minUnusedShapes = Int.MAX_VALUE
     private val executor: ExecutorService
     private var futures: List<Future<*>> = emptyList()
 
@@ -33,21 +31,14 @@ class HaltingDFSTopLevelTraversal(
         this.executor = Executors.newFixedThreadPool(threadPoolSize)
     }
 
-    override fun preTraversal(currentConfig: Configuration) { /* do nothing */ }
-
-    override fun determineShape(currentConfig: Configuration): Shape =
-        currentConfig.unusedShapes.random(rng)
-
-    override fun placementFailedGeometry() { /* do nothing */ }
-
-    override fun placementFailedDeadCells() { /* do nothing */ }
-
     override fun placementSucceeded(newConfig: Configuration) {
         val traversal = HaltingDFSDescentTraversal(puzzle, solver)
         futures = futures + executor.submit {
             try {
                 traversal.traverse(newConfig)
             } catch (e: FoundException) {
+                println("Solution found after ${traversal.deadEndCount} dead ends " +
+                        "with ${traversal.minUnusedShapes} shapes remaining")
                 solver.reportSolution(e.config)
             } catch (e: EndException) {
                 solver.reportAbandonedTraversal(traversal.minUnusedShapes)
