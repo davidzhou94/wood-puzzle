@@ -4,7 +4,6 @@ class Puzzle(
     val width: Int,
     val height: Int,
     val length: Int,
-    val shapeSide: Int,
     val minShapeSize: Int,
     val maxShapeSize: Int,
     val shapes: Set<Shape>

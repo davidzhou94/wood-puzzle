@@ -35,16 +35,15 @@ object XMLReader {
         val document = documentBuilder.parse(xmlFile)
         val rootElement = document.documentElement
         rootElement.normalize()
-        val shapeSide: Int = rootElement.getAttribute("shapeSide").toInt()
+        val sideLength: Int = rootElement.getAttribute("shapeSide").toInt()
         val shapeList = document.getElementsByTagName("Shape")
         val shapes = (0 until shapeList.length)
-                .map { index -> parseShape(shapeSide, shapeList.item(index)) }
+                .map { index -> parseShape(sideLength, shapeList.item(index)) }
                 .toSet()
         return Puzzle(
                 width = rootElement.getAttribute("width").toInt(),
                 height = rootElement.getAttribute("height").toInt(),
                 length = rootElement.getAttribute("length").toInt(),
-                shapeSide = shapeSide,
                 minShapeSize = rootElement.getAttribute("minShapeSize").toInt(),
                 maxShapeSize = rootElement.getAttribute("maxShapeSize").toInt(),
                 shapes = shapes

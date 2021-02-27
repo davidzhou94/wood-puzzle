@@ -1,32 +1,22 @@
 package woodpuzzle.engine
 
-import org.xml.sax.SAXException
 import woodpuzzle.engine.XMLReader.buildPuzzle
 import woodpuzzle.model.Puzzle
-import woodpuzzle.solver.HaltingDFSSolver
-import java.io.IOException
-import javax.xml.parsers.ParserConfigurationException
+import woodpuzzle.solver.haltingdfs.HaltingDFSSolver
 
 /**
  * Run using:
  * $ cd C:\Users\david\projects\wood-puzzle\
- * $ java -jar C:\Users\david\projects\wood-puzzle\build\libs\WoodPuzzle-1.0-SNAPSHOT.jar .\assets\default.xml
- * @param args first argument is the path to the puzzle definition
+ * $ java -jar C:\Users\david\projects\wood-puzzle\build\libs\WoodPuzzle-1.0-SNAPSHOT.jar 300000 .\assets\default.xml
+ * @param args 1st arg is halting DFS dead end limit 2nd arg is the path to the puzzle definition
  */
 fun main(args: Array<String>) {
-    val puzzle: Puzzle
-    try {
-        puzzle = buildPuzzle(args[0])
-    } catch (ex: SAXException) {
+    val puzzle: Puzzle = try {
+        buildPuzzle(args[1])
+    } catch (ex: Exception) {
         println("Error reading XML file: " + ex.message)
-        return
-    } catch (ex: ParserConfigurationException) {
-        println("Error reading XML file: " + ex.message)
-        return
-    } catch (ex: IOException) {
-        println("Error locating or opening given file: " + ex.message)
         return
     }
 
-    HaltingDFSSolver(puzzle).solvePuzzle()
+    HaltingDFSSolver(puzzle, args[0].toInt()).solvePuzzle()
 }
