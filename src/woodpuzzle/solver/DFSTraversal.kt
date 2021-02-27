@@ -12,7 +12,7 @@ import kotlin.random.Random
  * configurations tree.
  * @author david
  */
-class DFSTraversal(puzzle: Puzzle) : AbstractTraversal(puzzle) {
+class DFSTraversal(override val puzzle: Puzzle) : Traversal {
     private val rng = Random(Random.nextLong())
     private var count: Long = 0
     private var deadEndCount: Long = 0

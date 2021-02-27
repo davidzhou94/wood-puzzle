@@ -5,6 +5,7 @@ import woodpuzzle.model.Puzzle
 import woodpuzzle.model.Shape
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
+import java.util.concurrent.Future
 import kotlin.random.Random
 
 /**
@@ -14,12 +15,16 @@ import kotlin.random.Random
  * shape placement).
  * @author david
  */
-class HaltingDFSTopLevelTraversal(puzzle: Puzzle, private val solver: HaltingDFSSolver) : AbstractTraversal(puzzle) {
+class HaltingDFSTopLevelTraversal(
+    override val puzzle: Puzzle,
+    private val solver: HaltingDFSSolver
+) : Traversal {
     private val rng = Random(Random.nextLong())
     private val executor: ExecutorService
+    private var futures: List<Future<*>> = emptyList()
 
     init {
-        val threadPoolSize = Runtime.getRuntime().availableProcessors() * 4
+        val threadPoolSize = Runtime.getRuntime().availableProcessors() * 2
         println("Creating a thread pool with $threadPoolSize threads")
         this.executor = Executors.newFixedThreadPool(threadPoolSize)
     }
@@ -36,7 +41,7 @@ class HaltingDFSTopLevelTraversal(puzzle: Puzzle, private val solver: HaltingDFS
     override fun placementSucceeded(newConfig: Configuration, currentNode: ConfigurationTreeNode) {
         val child = ConfigurationTreeNode(currentNode, newConfig)
         val traversal = HaltingDFSDescentTraversal(currentNode.config.puzzle, solver)
-        executor.submit {
+        futures = futures + executor.submit {
             try {
                 traversal.traverse(child)
             } catch (e: FoundException) {
@@ -47,6 +52,8 @@ class HaltingDFSTopLevelTraversal(puzzle: Puzzle, private val solver: HaltingDFS
             }
         }
     }
+
+    fun running() = futures.find { !it.isDone } != null
 
     fun stop(): List<Runnable> = executor.shutdownNow()
 }

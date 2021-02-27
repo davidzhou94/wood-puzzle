@@ -35,3 +35,19 @@ fun composeTransforms(xAxis: XAxis, yAxis: YAxis, zAxis: ZAxis): RotationTransfo
         zAxis.transform(l, x2, y2, z2)
     }
 }
+
+/**
+ * I don't have definitive proof but it seems that rotations at
+ * 180 and 270 in 1 axis are duplicates of 0 and 90 that can be
+ * reached with rotations in the other 2 axis. See rotations.xlsx
+ */
+val CACHED_TRANSFORMS = listOf(XAxis.X_000, XAxis.X_090)
+    .map { xAxis ->
+        YAxis.values().map { yAxis ->
+            ZAxis.values().map { zAxis ->
+                Triple(xAxis, yAxis, zAxis)
+            }
+        }.flatten()
+    }.flatten()
+    .map { (xAxis, yAxis, zAxis) -> composeTransforms(xAxis, yAxis, zAxis) }
+

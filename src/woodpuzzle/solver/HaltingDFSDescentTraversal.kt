@@ -6,9 +6,12 @@ import woodpuzzle.model.Shape
 import kotlin.math.min
 import kotlin.random.Random
 
-class HaltingDFSDescentTraversal(puzzle: Puzzle, private val solver: HaltingDFSSolver) : AbstractTraversal(puzzle) {
+class HaltingDFSDescentTraversal(
+    override val puzzle: Puzzle,
+    private val solver: HaltingDFSSolver
+) : Traversal {
     companion object {
-        private const val DEAD_END_LIMIT = 1_000_000
+        private const val DEAD_END_LIMIT = 2_000_000
     }
 
     private val rng = Random(Random.nextLong())

@@ -38,18 +38,16 @@ class Shape(val sideLength: Int, coordinates: List<Coordinate>) {
     }
 
     /**
-     * Rotates this shape the given number of rotations along each of two
-     * possible axis. Each rotation is 90deg clockwise in the axis facing
-     * the origin. For example, rotateShape(0, 2) will rotate the shape
-     * 180deg clockwise in the z-axis when facing the origin. After computing
-     * the rotation, this will "pull" the shape into the origin such that the
-     * smallest possible x, y, and z values are 0. Finally, this will return
-     * an array representing the cells of the rotated shape. The cells of
-     * this shape are unchanged.
+     * Applies transform function to rotate the shape. The transform function is a
+     * pre-composed function for the rotation in each of 3 axis. After computing
+     * the rotation, the shape will be "pulled" into the origin such that the
+     * smallest x, y, and z values for any coordinate in the shape are 0. Finally,
+     * this will return an array representing the cells of the rotated shape. The
+     * cells of this shape are unchanged.
      * @param transform function to transform coordinates in possibly many rotations
      * @return An array representing the cells of the rotated shape.
      */
-    fun rotateShape(transform: RotationTransform): IntArray {
+    fun applyTransform(transform: RotationTransform): IntArray {
         // Apply the transform
         val rotatedShape = rotationTransform(cells, transform)
 

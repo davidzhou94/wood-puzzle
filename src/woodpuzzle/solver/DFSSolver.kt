@@ -3,7 +3,7 @@ package woodpuzzle.solver
 import woodpuzzle.model.Configuration
 import woodpuzzle.model.Puzzle
 
-class DFSSolver(puzzle: Puzzle) : AbstractSolver(puzzle) {
+class DFSSolver(override val puzzle: Puzzle) : Solver {
     override fun findSolution(): Configuration? {
         val traversal = DFSTraversal(puzzle)
         val rootConfig = Configuration(puzzle)

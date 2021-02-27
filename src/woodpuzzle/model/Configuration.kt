@@ -1,5 +1,7 @@
 package woodpuzzle.model
 
+import java.util.*
+
 class Configuration(
     val puzzle: Puzzle,
     val cells: Array<Shape?>,
@@ -53,5 +55,62 @@ class Configuration(
             newConfig.cells[puzzle.hashCoordinate(c)] = shape
         }
         return newConfig
+    }
+
+    /**
+     * Checks whether this configuration has dead cells. That is,
+     * if a group of empty and connected cells is smaller than the
+     * given minimum shape size, then it is dead. Furthermore,
+     * if all shapes are of identical size then a similar group with
+     * the number of empty cells not a multiple of the shape size is
+     * also considered dead.
+     * @return true if there are dead cells, otherwise false.
+     */
+    fun hasDeadCells(): Boolean {
+        val visited = BooleanArray(puzzle.totalCells) // Inits to false
+        for (x in 0 until puzzle.width) {
+            for (y in 0 until puzzle.height) {
+                for (z in 0 until puzzle.length) {
+                    // Iterates over every cell of the box looking for an empty gap
+                    val currentIndex = puzzle.hashCoordinate(x, y, z)
+                    if (visited[currentIndex]) continue
+                    visited[currentIndex] = true
+                    if (this.cells[currentIndex] != null) continue
+                    // If we are here then the current cell is unvisited and an empty gap, so
+                    // check how big the gap is
+                    var emptyCount = 1
+                    val checkNeighbours: Queue<Coordinate> = LinkedList()
+                    checkNeighbours.add(Coordinate(x, y, z))
+                    while (!checkNeighbours.isEmpty()) {
+                        val c = checkNeighbours.poll()
+                        val coordinatesToVisit: List<Coordinate> = listOf(
+                            Coordinate(c.x + 1, c.y, c.z),
+                            Coordinate(c.x - 1, c.y, c.z),
+                            Coordinate(c.x, c.y + 1, c.z),
+                            Coordinate(c.x, c.y - 1, c.z),
+                            Coordinate(c.x, c.y, c.z + 1),
+                            Coordinate(c.x, c.y, c.z - 1),
+                        )
+                        for (adjacentCoordinate in coordinatesToVisit) {
+                            if (!puzzle.isValidCoordinate(adjacentCoordinate)) continue
+                            val adjacentIndex = puzzle.hashCoordinate(adjacentCoordinate)
+                            if (visited[adjacentIndex]) continue
+                            visited[adjacentIndex] = true
+                            if (this.cells[adjacentIndex] == null) {
+                                emptyCount++
+                                checkNeighbours.add(adjacentCoordinate)
+                            }
+                        }
+                    }
+                    // If a gap is smaller than the smallest possible shape, it's dead
+                    if (emptyCount < puzzle.minShapeSize) return true
+                    // If the shapes are all the same size, and the gap is not a multiple
+                    // of the shape size, then it's also dead
+                    if (puzzle.minShapeSize == puzzle.maxShapeSize &&
+                        emptyCount % puzzle.maxShapeSize != 0) return true
+                }
+            }
+        }
+        return false
     }
 }

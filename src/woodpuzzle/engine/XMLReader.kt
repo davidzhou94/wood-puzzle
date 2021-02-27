@@ -1,11 +1,7 @@
 package woodpuzzle.engine
 
 import org.w3c.dom.Node
-import org.xml.sax.SAXException
 import woodpuzzle.model.Coordinate
-import kotlin.Throws
-import java.io.IOException
-import javax.xml.parsers.ParserConfigurationException
 import woodpuzzle.model.Puzzle
 import woodpuzzle.model.Shape
 import java.io.File
@@ -32,11 +28,7 @@ object XMLReader {
      * instance of a puzzle from the XML specification.
      * @param filePath The path to the file.
      * @return A new instance of Puzzle.
-     * @throws IOException
-     * @throws SAXException
-     * @throws ParserConfigurationException
      */
-    @Throws(SAXException::class, IOException::class, ParserConfigurationException::class)
     fun buildPuzzle(filePath: String): Puzzle {
         val xmlFile = File(filePath)
         val documentBuilder = DocumentBuilderFactory.newInstance().newDocumentBuilder()

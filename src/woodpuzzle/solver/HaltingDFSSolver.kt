@@ -13,7 +13,7 @@ import woodpuzzle.model.Puzzle
  * @param puzzle The puzzle to solve.
  * @author david
  */
-class HaltingDFSSolver(puzzle: Puzzle) : AbstractSolver(puzzle) {
+class HaltingDFSSolver(override val puzzle: Puzzle) : Solver {
     private var solution: Configuration? = null
     private var recordLevel = Int.MAX_VALUE
     private var abandonedAttempts = 0
@@ -36,7 +36,7 @@ class HaltingDFSSolver(puzzle: Puzzle) : AbstractSolver(puzzle) {
             // under HaltingDFS
         }
         println("Finished traversing top level of configurations, waiting on solution.")
-        while (solution == null) {
+        while (solution == null && traversal.running()) {
             try {
                 Thread.sleep(100L)
             } catch (e: InterruptedException) {
