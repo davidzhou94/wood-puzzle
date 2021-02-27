@@ -33,31 +33,30 @@ abstract class AbstractTraversal(private val puzzle: Puzzle) {
         // Try every possible placement in the puzzle box
         for (xOffset in 0 until puzzle.width - 1) {
             for (zOffset in 0 until puzzle.length - 1) {
-                for (yAxis in YAxis.values()) {
-                    for (zAxis in ZAxis.values()) {
-                        val newConfig = Configuration(currentConfig)
-                        val rotatedShape = shape.rotateShape(yAxis, zAxis)
-                        var placement: List<Coordinate> = emptyList()
-                        // Un-hash the coordinates
-                        for (x in 0 until sideLength) {
-                            for (y in 0 until sideLength) {
-                                for (z in 0 until sideLength) {
-                                    if (rotatedShape[shape.hashCoordinate(x, y, z)] == 1) {
-                                        placement = placement + Coordinate(x + xOffset, y, z + zOffset)
-                                    }
-                                }
+                // I don't have definitive proof but it seems that rotations at
+                // 180 and 270 in 1 axis are duplicates of 0 and 90 that can be
+                // reached with rotations in the other 2 axis. See rotations.xlsx
+                for (xAxis in listOf(XAxis.X_000, XAxis.X_090)) {
+                    for (yAxis in YAxis.values()) {
+                        for (zAxis in ZAxis.values()) {
+                            val composedTransform = composeTransforms(xAxis, yAxis, zAxis)
+                            val rotatedShape = shape.rotateShape(composedTransform)
+
+                            val placement = shapeArrayToCoordinateList(sideLength, rotatedShape)
+                                .map { it.vectorAdd(xOffset, 0, zOffset) }
+
+                            val newConfig = currentConfig.placeShape(shape, placement)
+                            if (newConfig == null) {
+                                placementFailedGeometry()
+                                continue
                             }
+                            if (newConfig.allCellsFilled()) throw FoundException(newConfig)
+                            if (hasDeadCells(newConfig)) {
+                                placementFailedDeadCells()
+                                continue
+                            }
+                            placementSucceeded(newConfig, node)
                         }
-                        if (!newConfig.placeShape(shape, placement)) {
-                            placementFailedGeometry()
-                            continue
-                        }
-                        if (newConfig.allCellsFilled()) throw FoundException(newConfig)
-                        if (hasDeadCells(newConfig)) {
-                            placementFailedDeadCells()
-                            continue
-                        }
-                        placementSucceeded(newConfig, node)
                     }
                 }
             }

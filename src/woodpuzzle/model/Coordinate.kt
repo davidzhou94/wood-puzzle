@@ -7,10 +7,10 @@ package woodpuzzle.model
  * @param z The z component.
  */
 class Coordinate (
-        val x: Int, // width
-        val y: Int, // height
-        val z: Int  // length
-        ) {
+    val x: Int, // width
+    val y: Int, // height
+    val z: Int  // length
+) {
     /**
      * Creates a coordinate that has the usual vector
      * addition applied to it.
@@ -19,9 +19,8 @@ class Coordinate (
      * @param z The z component.
      * @return The transformed coordinate (a new coordinate instance).
      */
-    fun vectorAdd(x: Int, y: Int, z: Int): Coordinate {
-        return Coordinate(this.x + x, this.y + y, this.z + z)
-    }
+    fun vectorAdd(x: Int, y: Int, z: Int): Coordinate =
+        Coordinate(this.x + x, this.y + y, this.z + z)
 
     companion object {
         /**

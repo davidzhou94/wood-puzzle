@@ -7,12 +7,10 @@ class Shape(val sideLength: Int, coordinates: List<Coordinate>) {
     private val cells: IntArray = IntArray(total)
 
     /**
-     * Initialized the cells of this shape by setting all cells to 0.
+     * Initialized the cells of this shape but setting the cells
+     * with shape coordinates to 1.
      */
     init {
-        for (i in 0 until total) {
-            cells[i] = 0
-        }
         for (c in coordinates) {
             cells[this.hashCoordinate(c)] = 1
         }
@@ -27,10 +25,10 @@ class Shape(val sideLength: Int, coordinates: List<Coordinate>) {
      */
     private fun rotationTransform(source: IntArray, transform: RotationTransform): IntArray {
         val destination = IntArray(total)
-        for (x in 0 until sideLength) {
-            for (y in 0 until sideLength) {
-                for (z in 0 until sideLength) {
-                    val (sx, sy, sz) = transform(sideLength, x, y, z)
+        for (sx in 0 until sideLength) {
+            for (sy in 0 until sideLength) {
+                for (sz in 0 until sideLength) {
+                    val (x, y, z) = transform(sideLength, sx, sy, sz)
                     val sourceIndex = this.hashCoordinate(sx, sy, sz)
                     destination[this.hashCoordinate(x, y, z)] = source[sourceIndex]
                 }
@@ -48,16 +46,12 @@ class Shape(val sideLength: Int, coordinates: List<Coordinate>) {
      * smallest possible x, y, and z values are 0. Finally, this will return
      * an array representing the cells of the rotated shape. The cells of
      * this shape are unchanged.
-     * @param yAxis Number of 90deg clockwise rotations along the y-axis.
-     * @param zAxis Number of 90deg clockwise rotations along the z-axis.
+     * @param transform function to transform coordinates in possibly many rotations
      * @return An array representing the cells of the rotated shape.
      */
-    fun rotateShape(yAxis: YAxis, zAxis: ZAxis): IntArray {
-        // Take original shape in cells and rotate it in the y-axis, storing result in firstIteration
-        val firstIteration = rotationTransform(cells, yAxis.transform)
-        // Take y-axis rotated shape in firstIteration and rotate it in the z-axis,
-        // storing result in finalIteration
-        val finalIteration = rotationTransform(firstIteration, zAxis.transform)
+    fun rotateShape(transform: RotationTransform): IntArray {
+        // Apply the transform
+        val rotatedShape = rotationTransform(cells, transform)
 
         // determine the smallest x, y, and z values in order
         // to "pull" the shape into the origin.
@@ -67,7 +61,7 @@ class Shape(val sideLength: Int, coordinates: List<Coordinate>) {
         for (x in 0 until sideLength) {
             for (y in 0 until sideLength) {
                 for (z in 0 until sideLength) {
-                    if (finalIteration[this.hashCoordinate(x, y, z)] == 1) {
+                    if (rotatedShape[this.hashCoordinate(x, y, z)] == 1) {
                         minX = min(minX, x)
                         minY = min(minY, y)
                         minZ = min(minZ, z)
@@ -76,19 +70,20 @@ class Shape(val sideLength: Int, coordinates: List<Coordinate>) {
             }
         }
 
+        val originAligned = IntArray(total)
+
         // pull the shape into the origin.
         for (x in 0 until sideLength) {
             for (y in 0 until sideLength) {
                 for (z in 0 until sideLength) {
                     if (x < sideLength - minX && y < sideLength - minY && z < sideLength - minZ) {
-                        finalIteration[this.hashCoordinate(x, y, z)] = finalIteration[this.hashCoordinate(x + minX, y + minY, z + minZ)]
-                    } else {
-                        finalIteration[this.hashCoordinate(x, y, z)] = 0
+                        originAligned[this.hashCoordinate(x, y, z)] =
+                            rotatedShape[this.hashCoordinate(x + minX, y + minY, z + minZ)]
                     }
                 }
             }
         }
-        return finalIteration
+        return originAligned
     }
 
     /**

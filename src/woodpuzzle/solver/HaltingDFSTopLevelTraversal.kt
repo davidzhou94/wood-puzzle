@@ -16,9 +16,12 @@ import kotlin.random.Random
  */
 class HaltingDFSTopLevelTraversal(puzzle: Puzzle, private val solver: HaltingDFSSolver) : AbstractTraversal(puzzle) {
     private val rng = Random(Random.nextLong())
-    private val executor: ExecutorService = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors())
+    private val executor: ExecutorService
+
     init {
-        println("Creating a thread pool with ${Runtime.getRuntime().availableProcessors()} threads")
+        val threadPoolSize = Runtime.getRuntime().availableProcessors() * 4
+        println("Creating a thread pool with $threadPoolSize threads")
+        this.executor = Executors.newFixedThreadPool(threadPoolSize)
     }
 
     override fun preTraversal(currentConfig: Configuration) { /* do nothing */ }
@@ -45,5 +48,5 @@ class HaltingDFSTopLevelTraversal(puzzle: Puzzle, private val solver: HaltingDFS
         }
     }
 
-    fun stop() = executor.shutdown()
+    fun stop(): List<Runnable> = executor.shutdownNow()
 }

@@ -8,7 +8,7 @@ import kotlin.random.Random
 
 class HaltingDFSDescentTraversal(puzzle: Puzzle, private val solver: HaltingDFSSolver) : AbstractTraversal(puzzle) {
     companion object {
-        private const val DEAD_END_LIMIT = 10_000_000
+        private const val DEAD_END_LIMIT = 1_000_000
     }
 
     private val rng = Random(Random.nextLong())
