@@ -3,7 +3,6 @@ package woodpuzzle.solver.haltingdfs
 import woodpuzzle.model.Configuration
 import woodpuzzle.model.Puzzle
 import woodpuzzle.model.Shape
-import woodpuzzle.solver.ConfigurationTreeNode
 import woodpuzzle.solver.EndException
 import woodpuzzle.solver.Traversal
 import kotlin.math.min
@@ -15,12 +14,12 @@ class HaltingDFSDescentTraversal(
 ) : Traversal {
     private val rng = Random(Random.nextLong())
     private var deadEndCount: Long = 0
-    private var minObservedShapesRemaining = Int.MAX_VALUE
+    var minUnusedShapes = Int.MAX_VALUE
 
     override fun preTraversal(currentConfig: Configuration) {
-        minObservedShapesRemaining = min(currentConfig.unusedShapes.size, minObservedShapesRemaining)
+        minUnusedShapes = min(currentConfig.unusedShapes.size, minUnusedShapes)
         if (deadEndCount > solver.deadEndLimit) {
-            solver.reportAbandonedTraversal(minObservedShapesRemaining)
+            solver.reportAbandonedTraversal(minUnusedShapes)
             throw EndException
         }
     }
@@ -36,7 +35,7 @@ class HaltingDFSDescentTraversal(
         deadEndCount++
     }
 
-    override fun placementSucceeded(newConfig: Configuration, currentNode: ConfigurationTreeNode) {
-        super.traverse(ConfigurationTreeNode(currentNode, newConfig))
+    override fun placementSucceeded(newConfig: Configuration) {
+        super.traverse(newConfig)
     }
 }

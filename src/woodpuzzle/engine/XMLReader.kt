@@ -9,6 +9,20 @@ import javax.xml.parsers.DocumentBuilderFactory
 
 object XMLReader {
     /**
+     * Creates a coordinate from a string representation
+     * of a coordinate of the form "x,y,z"
+     * @param text The string representation.
+     * @return The newly built coordinate.
+     */
+    private fun parseCoordinate(text: String): Coordinate? {
+        val result = text.split(",").toTypedArray()
+        return if (result.size != 3)
+            null
+        else
+            Coordinate(result[0].toInt(), result[1].toInt(), result[2].toInt())
+    }
+
+    /**
      * Utility method for parsing a single Shape from the given
      * XML file. Called only from buildPuzzle.
      * @param sideLength The side length of the cube that contains the largest shape.
@@ -19,7 +33,7 @@ object XMLReader {
         val shapeCells = (0 until shapeNode.childNodes.length)
                 .map { index -> shapeNode.childNodes.item(index) }
                 .filter { it.nodeName == "Coordinate" && it.nodeType == Node.ELEMENT_NODE }
-                .mapNotNull { Coordinate.buildCoordinate(it.textContent) }
+                .mapNotNull { parseCoordinate(it.textContent) }
         return Shape(sideLength, shapeCells)
     }
 

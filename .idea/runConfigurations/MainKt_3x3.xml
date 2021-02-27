@@ -2,7 +2,7 @@
   <configuration default="false" name="MainKt 3x3" type="Application" factoryName="Application">
     <option name="MAIN_CLASS_NAME" value="woodpuzzle.engine.MainKt" />
     <module name="WoodPuzzle.main" />
-    <option name="PROGRAM_PARAMETERS" value="assets/3x3.xml" />
+    <option name="PROGRAM_PARAMETERS" value="300000 assets/3x3.xml" />
     <option name="VM_PARAMETERS" value="-Xmx8g" />
     <extension name="coverage">
       <pattern>

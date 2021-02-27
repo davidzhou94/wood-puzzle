@@ -42,7 +42,7 @@ class ConfigurationTest {
             Coordinate(0, 1, 1),
         ))
     private val shapes = setOf(s1, s2, s3)
-    private val p = Puzzle(WIDTH, HEIGHT, LENGTH, SHAPE_SIDE, MIN_SHAPE_SIZE, MAX_SHAPE_SIZE, shapes)
+    private val p = Puzzle(WIDTH, HEIGHT, LENGTH, MIN_SHAPE_SIZE, MAX_SHAPE_SIZE, shapes)
 
     @Test
     fun test() {

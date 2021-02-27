@@ -2,7 +2,6 @@ package woodpuzzle.solver.haltingdfs
 
 import woodpuzzle.model.Configuration
 import woodpuzzle.model.Puzzle
-import woodpuzzle.solver.ConfigurationTreeNode
 import woodpuzzle.solver.EndException
 import woodpuzzle.solver.FoundException
 import woodpuzzle.solver.Solver
@@ -18,11 +17,11 @@ import woodpuzzle.solver.Solver
  * @author david
  */
 class HaltingDFSSolver(
-    override val puzzle: Puzzle,
+    val puzzle: Puzzle,
     val deadEndLimit: Int
 ) : Solver {
     private var solution: Configuration? = null
-    private var recordLevel = Int.MAX_VALUE
+    private var minUnusedShapes = Int.MAX_VALUE
     private var abandonedAttempts = 0
 
     /**
@@ -32,10 +31,9 @@ class HaltingDFSSolver(
     override fun findSolution(): Configuration? {
         val traversal = HaltingDFSTopLevelTraversal(puzzle, this)
         val rootConfig = Configuration(puzzle)
-        val rootNode = ConfigurationTreeNode(null, rootConfig)
         println("Starting top level traversal")
         try {
-            traversal.traverse(rootNode)
+            traversal.traverse(rootConfig)
         } catch (e: FoundException) {
             reportSolution(e.config)
         } catch (e: EndException) {
@@ -60,10 +58,10 @@ class HaltingDFSSolver(
 
     @Synchronized
     fun reportAbandonedTraversal(recordLevel: Int) {
-        if (recordLevel < this.recordLevel) {
-            this.recordLevel = recordLevel
+        if (recordLevel < minUnusedShapes) {
+            minUnusedShapes = recordLevel
         }
         abandonedAttempts++
-        println("Minimum shapes remaining: ${this.recordLevel}, $abandonedAttempts attempts abandoned")
+        println("Minimum shapes remaining: $minUnusedShapes, $abandonedAttempts attempts abandoned")
     }
 }

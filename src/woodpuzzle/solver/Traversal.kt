@@ -9,18 +9,15 @@ interface Traversal {
     fun determineShape(currentConfig: Configuration): Shape = puzzle.shapes.first()
     fun placementFailedGeometry() { }
     fun placementFailedDeadCells() { }
-    fun placementSucceeded(newConfig: Configuration, currentNode: ConfigurationTreeNode) { }
+    fun placementSucceeded(newConfig: Configuration) { }
 
     /**
-     * Traverses the potential children configurations of the configuration
-     * at the given node according to the given strategy. Flow is controlled
-     * by throwing an exception to indicate whether the traversal has found
-     * a solution or whether it is terminating early due to an indication
-     * in the strategy.
-     * @param node The parent node.
+     * Traverses the potential child configurations of the current configuration.
+     * Flow is controlled by throwing an exception to indicate whether the traversal
+     * has found a solution or whether it is terminating early.
+     * @param currentConfig The current configuration
      */
-    fun traverse(node: ConfigurationTreeNode) {
-        val currentConfig = node.config
+    fun traverse(currentConfig: Configuration) {
         preTraversal(currentConfig)
         val shape = determineShape(currentConfig)
         val sideLength = shape.sideLength
@@ -44,7 +41,7 @@ interface Traversal {
                         placementFailedDeadCells()
                         continue
                     }
-                    placementSucceeded(newConfig, node)
+                    placementSucceeded(newConfig)
                 }
             }
         }

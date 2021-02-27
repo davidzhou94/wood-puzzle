@@ -3,13 +3,13 @@ package woodpuzzle.solver.haltingdfs
 import woodpuzzle.model.Configuration
 import woodpuzzle.model.Puzzle
 import woodpuzzle.model.Shape
-import woodpuzzle.solver.ConfigurationTreeNode
 import woodpuzzle.solver.EndException
 import woodpuzzle.solver.FoundException
 import woodpuzzle.solver.Traversal
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
 import java.util.concurrent.Future
+import java.util.concurrent.TimeUnit
 import kotlin.random.Random
 
 /**
@@ -42,22 +42,23 @@ class HaltingDFSTopLevelTraversal(
 
     override fun placementFailedDeadCells() { /* do nothing */ }
 
-    override fun placementSucceeded(newConfig: Configuration, currentNode: ConfigurationTreeNode) {
-        val child = ConfigurationTreeNode(currentNode, newConfig)
-        val traversal = HaltingDFSDescentTraversal(currentNode.config.puzzle, solver)
+    override fun placementSucceeded(newConfig: Configuration) {
+        val traversal = HaltingDFSDescentTraversal(puzzle, solver)
         futures = futures + executor.submit {
             try {
-                traversal.traverse(child)
+                traversal.traverse(newConfig)
             } catch (e: FoundException) {
                 solver.reportSolution(e.config)
             } catch (e: EndException) {
-                // do nothing, should not see this exception here
-                // under HaltingDFS
+                solver.reportAbandonedTraversal(traversal.minUnusedShapes)
             }
         }
     }
 
     fun running() = futures.find { !it.isDone } != null
 
-    fun stop(): List<Runnable> = executor.shutdownNow()
+    fun stop() {
+        executor.shutdownNow()
+        executor.awaitTermination(5, TimeUnit.SECONDS)
+    }
 }

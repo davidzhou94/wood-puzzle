@@ -1,8 +1,9 @@
 package woodpuzzle.model
 
-import java.util.*
+import java.util.Queue
+import java.util.LinkedList
 
-class Configuration(
+data class Configuration(
     val puzzle: Puzzle,
     val cells: Array<Shape?>,
     val unusedShapes: Set<Shape>
@@ -45,15 +46,9 @@ class Configuration(
             if (cells[puzzle.hashCoordinate(coordinate)] != null) return null
         }
         // At this point we know the shape can be placed. Create a copy of this configuration.
-        val newConfig = Configuration(
-            puzzle = this.puzzle,
-            cells = this.cells.copyOf(),
-            unusedShapes = this.unusedShapes - shape
-        )
+        val newConfig = this.copy(cells = this.cells.copyOf(), unusedShapes = this.unusedShapes - shape)
         // Place the shape and remove it from unused in the new configuration.
-        for (c in placement) {
-            newConfig.cells[puzzle.hashCoordinate(c)] = shape
-        }
+        for (c in placement) newConfig.cells[puzzle.hashCoordinate(c)] = shape
         return newConfig
     }
 

@@ -32,3 +32,15 @@ fun printSolution(configuration: Configuration?) {
         println()
     }
 }
+
+class Timer(private val start: Long = System.currentTimeMillis()) {
+    fun printElapsed() {
+        val elapsed = System.currentTimeMillis() - start
+        val second = elapsed / 1000 % 60
+        val minute = elapsed / (1000 * 60) % 60
+        val hour = elapsed / (1000 * 60 * 60) % 24
+        val millis = elapsed % 1000
+        val time = String.format("%02d:%02d:%02d:%03d", hour, minute, second, millis)
+        println("\nTime elapsed: $time")
+    }
+}
