@@ -55,12 +55,12 @@ object XMLReader {
                 .map { index -> parseShape(sideLength, shapeList.item(index)) }
                 .toSet()
         return Puzzle(
-                width = rootElement.getAttribute("width").toInt(),
-                height = rootElement.getAttribute("height").toInt(),
-                length = rootElement.getAttribute("length").toInt(),
-                minShapeSize = rootElement.getAttribute("minShapeSize").toInt(),
-                maxShapeSize = rootElement.getAttribute("maxShapeSize").toInt(),
-                shapes = shapes
+            width = rootElement.getAttribute("width").toInt(),
+            height = rootElement.getAttribute("height").toInt(),
+            length = rootElement.getAttribute("length").toInt(),
+            minShapeSize = rootElement.getAttribute("minShapeSize").toInt(),
+            maxShapeSize = rootElement.getAttribute("maxShapeSize").toInt(),
+            shapes = shapes
         )
     }
 }

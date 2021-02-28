@@ -1,8 +1,5 @@
 package woodpuzzle.model
 
-import java.util.Queue
-import java.util.LinkedList
-
 data class Configuration(
     val puzzle: Puzzle,
     val cells: Array<Shape?>,
@@ -66,18 +63,17 @@ data class Configuration(
         for (x in 0 until puzzle.width) {
             for (y in 0 until puzzle.height) {
                 for (z in 0 until puzzle.length) {
-                    // Iterates over every cell of the box looking for an empty gap
+                    // Iterates over every cell of the box looking for an unvisited, empty gap.
                     val currentIndex = puzzle.hashCoordinate(x, y, z)
                     if (visited[currentIndex]) continue
                     visited[currentIndex] = true
-                    if (this.cells[currentIndex] != null) continue
+                    if (cells[currentIndex] != null) continue
                     // If we are here then the current cell is unvisited and an empty gap, so
-                    // check how big the gap is
+                    // count and visit the whole gap.
                     var emptyCount = 1
-                    val checkNeighbours: Queue<Coordinate> = LinkedList()
-                    checkNeighbours.add(Coordinate(x, y, z))
-                    while (!checkNeighbours.isEmpty()) {
-                        val c = checkNeighbours.poll()
+                    val checkNeighbours: MutableList<Coordinate> = mutableListOf(Coordinate(x, y, z))
+                    while (checkNeighbours.isNotEmpty()) {
+                        val c = checkNeighbours.removeFirst()
                         val coordinatesToVisit: List<Coordinate> = listOf(
                             Coordinate(c.x + 1, c.y, c.z),
                             Coordinate(c.x - 1, c.y, c.z),
@@ -91,7 +87,7 @@ data class Configuration(
                             val adjacentIndex = puzzle.hashCoordinate(adjacentCoordinate)
                             if (visited[adjacentIndex]) continue
                             visited[adjacentIndex] = true
-                            if (this.cells[adjacentIndex] == null) {
+                            if (cells[adjacentIndex] == null) {
                                 emptyCount++
                                 checkNeighbours.add(adjacentCoordinate)
                             }

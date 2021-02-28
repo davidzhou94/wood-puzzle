@@ -1,0 +1,23 @@
+Solution found after 390009 dead ends with 1 shapes remaining
+
+Time elapsed: 00:00:49:467
+
+Solution found:
+
+A B C D E
+A B C D F
+A A C F F
+G H I I F
+G G J I K
+G L J M K
+N L L K K
+N N O O P
+
+B D D D E
+B B C C E
+H A I E E
+H H I M F
+G H M M K
+L L J M P
+N O J J P
+N O O P P
